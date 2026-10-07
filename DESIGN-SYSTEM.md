@@ -344,3 +344,37 @@ class Source(Protocol):
 ```
 
 Menambah sumber baru = 1 file + 1 entri di `config/sources.yaml` + 1 fixture test.
+
+## 12. Multi-Provider (beberapa repo/scraper untuk satu sumber)
+
+Satu **source** (mis. `linkedin`, `glints`) bisa punya beberapa **provider**, yaitu implementasi berbeda:
+
+```yaml
+# config/sources.yaml
+linkedin:
+  mode: fallback            # fallback | parallel | single
+  providers:
+    - jobspy                # python-jobspy (library, venv utama)
+    - linkedin_guest        # connector kita sendiri ke guest endpoint
+    - spinlud_selenium      # opsional, enabled: false (butuh Chrome + cookie login)
+glints:
+  mode: single
+  providers: [glints_cloudscraper]   # port dari ifqygazhar/jobscraper-api (MIT)
+indeed:
+  mode: fallback
+  providers: [jobspy]
+```
+
+- **fallback** (default): coba provider #1. Kalau error, 0 hasil, atau 403/429, lanjut ke #2. Hemat request, risiko diblokir kecil.
+- **parallel**: semua provider jalan, hasil digabung lewat dedup (`id`/`fingerprint`). Cakupan maksimal, tapi request ke situs yang sama berlipat. Dipakai untuk membandingkan atau memvalidasi.
+- **single**: hanya satu.
+- Setiap `Job` mencatat `provider` di samping `source`, dan status/health dilacak **per provider** (UI Sources menampilkan keduanya).
+
+**Cara memasukkan repo pihak ketiga**
+| Jenis repo | Cara | Contoh |
+|---|---|---|
+| Library di PyPI, aktif, populer | `pip install` versi di-pin, di venv utama | JobSpy |
+| Repo aplikasi (Flask/CLI), bukan library | **Port** fungsi yang diperlukan ke `sources/<name>.py`, cantumkan lisensi + link asal di header file | ifqygazhar → Glints |
+| Repo berat/bentrok dependensi (Selenium, versi pin lama) | Jalankan sebagai **subprocess di venv terpisah** (`providers/<name>/.venv`), komunikasi via JSON stdout | spinlud (opsional) |
+
+Aturan menambah provider: lisensi permisif, kode dibaca dulu (tidak menjalankan kode yang belum diperiksa), versi di-pin, ada fixture test, dan default `enabled: false` sampai lolos probe.

@@ -15,7 +15,8 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 
 - **Fase:** **M0 selesai** (2026-10-07). Berikutnya **M1**.
 - **Kode:** scaffold backend (FastAPI + skema pydantic di `backend/core/models.py`, endpoint `/api/health` + stub `/api/jobs`, CLI `fjg info`, 3 test lulus) dan frontend (Vite 8 + React 19 + TS 7 + Tailwind 4, shell header + empty state, proxy `/api` → :8000). `git init` sudah, **belum ada commit**.
-- **Next step:** M1 = `storage/filestore.py` (JSONL + atomic write + lock), `scraper/base.py`, normalize/classify/dedup, sumber Remotive + RemoteOK + HN, `fjg scrape`.
+- **Validasi sumber selesai** (fokus freelance foto/video): lihat [VALIDATION.md](VALIDATION.md). Script probe ada di `backend/probes/`.
+- **Next step:** M1 = `storage/filestore.py` (JSONL + atomic write + lock), `scraper/base.py`, normalize/classify (+ kamus Creative)/dedup, sumber **Freelancer.com + JobStreet ID + Himalayas**, `fjg scrape`.
 
 ## Cara Menjalankan
 
@@ -51,12 +52,16 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 | D12 | Scrape terjadwal: scheduler internal (APScheduler) + Windows Task Scheduler (`fjg schedule run-due`), daftar jadwal sama di `data/state/schedules.json` | User (rev 3) |
 | D13 | **Tanpa konversi mata uang**; sort/filter salary hanya aktif bila Currency dipilih | User (rev 3); membandingkan mata uang berbeda tidak valid tanpa kurs |
 | D14 | **Region focus** + All regions, hierarki di `config/regions.yaml`; job remote worldwide ikut tampil di region mana pun (toggle) | User (rev 3) |
+| D15 | Multi-provider per sumber, **default mode `fallback`**; `parallel` opsional per sumber; provider baru `enabled: false` sampai lolos probe | User (2026-10-07). Hemat request & risiko ban kecil |
 
 ## Gotchas
 
 - **Remotive & RemoteOK wajib atribusi + link balik**; Remotive maks ~4 fetch/hari, >2 req/menit diblok. RemoteOK API delay 24 jam.
 - **Upwork RSS sudah mati (2024)**.
-- **Reddit:** pakai `User-Agent` deskriptif; dari IP rumahan biasanya aman, tapi jangan agresif.
+- **Reddit:** `.json` anonim = **403 Blocked**; `.rss` jalan tapi **429 setelah ~2 request**. Pakai OAuth (app script gratis) atau jeda ≥15 dtk.
+- **Google Jobs via JobSpy 1.2.0 rusak** (`Google returned no job data`). Projects.co.id 403. Glints GraphQL 403, tapi **halaman explore via `cloudscraper` jalan tanpa login**.
+- Kalibrr pernah gagal DNS sekali (sementara), jadi tambahkan retry.
+- Regex kreatif harus pakai word boundary + exclude (`photovoltaic`, `video game`, `data annotator`).
 - **JobSpy:** LinkedIn cepat kena 429. Batasi `results_wanted` dan beri jeda antar query.
 - Endpoint JobStreet/Glints/Kalibrr & Freelancer.com **belum diverifikasi**. Cek dulu via DevTools.
 - Tulis file dengan atomic replace + lock per sumber (CLI dan API bisa jalan bersamaan).
@@ -78,3 +83,5 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Rev 3: UI EN, schedules (internal + Task Scheduler), tanpa konversi kurs, region focus + All regions. Update semua dokumen design | Mulai M0 |
 | 2026-10-07 | **M0 selesai**: git init, scaffold backend + frontend, skema pydantic, start.bat/ps1. Terverifikasi: pytest 3/3, `npm run build` ok, `/api/health` + proxy Vite `/api/jobs` ok | M1 |
 | 2026-10-07 | Root `npm i` / `npm start` / `npm test` / `serve` / `fjg` (scripts/*.mjs). Diuji dari clean install. Audit repo & library (PLANNING §3). Commit pertama tanpa co-author (permintaan user) | M1 |
+| 2026-10-07 | Validasi nyata 18 sumber + 8 kasus JobSpy untuk freelance foto/video → VALIDATION.md; prioritas sumber & M1 diubah | M1 |
+| 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1 | M1 (user setuju fallback) |

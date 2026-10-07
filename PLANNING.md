@@ -75,21 +75,25 @@ Untuk sumber lain (Remotive, RemoteOK, Arbeitnow, Jobicy, Himalayas, HN Algolia,
 | [amanfojnr/codejobs](https://github.com/amanfojnr/codejobs) | Mati sejak 2018 |
 | gigbot | Ruby, tidak aktif |
 
-## 4. Sumber Data (prioritas)
+## 4. Sumber Data (prioritas, **sudah divalidasi 2026-10-07**, lihat [VALIDATION.md](VALIDATION.md))
 
-🟢 API/RSS publik · 🟡 perlu workaround/verifikasi · 🔴 tidak dikerjakan
+Fokus utama: **freelance/jasa kreatif** (photography, videography, photo/video editor).
+✅ teruji jalan · ⚠️ jalan dengan syarat · ❌ gagal/dibuang
 
-| Prioritas | Sumber | Kategori | Pasar | Status |
+| Prioritas | Sumber | Kategori | Pasar | Hasil uji |
 |---|---|---|---|---|
-| P1 | Remotive, RemoteOK, Arbeitnow, Jobicy, Himalayas, We Work Remotely (RSS), Working Nomads | job | global remote | 🟢 |
-| P1 | Hacker News "Who is hiring" + "Freelancer? Seeking freelancer?" (Algolia API) | job + gig | global | 🟢 |
-| P1 | Reddit: r/forhire, r/hiring, r/freelance_forhire, r/slavelabour, r/remotejs, r/jobbit | gig | global | 🟢 dari IP lokal (`.json` + User-Agent) |
-| P1 | Freelancer.com public projects API | gig | global | 🟡 verifikasi |
-| P2 | JobSpy: LinkedIn, Indeed (country=indonesia), Glassdoor, Google Jobs | job | global + ID | 🟡 rawan 429, batasi jumlah |
-| P2 | JobStreet ID, Glints, Kalibrr | job | ID | 🟡 endpoint JSON internal, cek DevTools |
-| P3 | Telegram channel loker publik (`t.me/s/<channel>`) | job + gig | ID | 🟡 parsing HTML |
-| P3 | Greenhouse / Lever / Ashby per perusahaan (daftar kurasi) | job | global | 🟢 |
-| — | X/Twitter, Facebook, Instagram, Threads, Upwork, Fiverr | — | — | 🔴 |
+| P1 | **Freelancer.com** public projects API | gig | global | ✅ 91/118 relevan, budget + mata uang |
+| P1 | **JobStreet ID**, **Kalibrr** (API JSON internal), **Glints** (cloudscraper, port dari ifqygazhar/jobscraper-api) | job | ID | ✅ 57/65 relevan, salary IDR sebagian. Glints ✅ tanpa login |
+| P1 | **JobSpy**: Indeed (US + ID), Glassdoor, ZipRecruiter | job (contract/part-time) | global + ID | ✅ cepat (1–3 dtk), salary di ±50–90% |
+| P1 | JobSpy: LinkedIn | job | global + ID | ✅ jalan (17–20 hasil). Lambat (6–12 dtk), tanpa salary. **Tetap dipakai**, ikut default |
+| P2 | **Himalayas** API | job | global remote | ✅ 57/61 relevan |
+| P2 | **Reddit** r/forhire, r/slavelabour, r/PhotoshopRequest, r/VideoEditingRequests, r/hiring | gig | global | ⚠️ `.json` 403. RSS jalan tapi 429 cepat, jadi **pakai OAuth** (app gratis) |
+| P3 | Remotive, RemoteOK, Jobicy, Arbeitnow, We Work Remotely, HN | job | global | ✅ jalan, tapi hampir 0 role kreatif. Sumber umum, non-default di preset Creative |
+| P3 | Telegram channel loker publik (`t.me/s/<channel>`) | job + gig | ID | belum diuji |
+| ❌ | Google Jobs (via JobSpy), Projects.co.id | — | — | gagal (no data / 403) |
+| ❌ | X/Twitter, Facebook, Instagram, Threads, Upwork, Fiverr | — | — | tidak dikerjakan |
+
+Satu sumber bisa punya beberapa provider/repo (fallback atau parallel), lihat DESIGN-SYSTEM §12.
 
 Aturan: hormati rate limit & ToS, cantumkan atribusi (Remotive/RemoteOK wajib), selalu simpan link asli.
 
@@ -127,7 +131,7 @@ Detail di [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 | Fase | Isi | Selesai bila |
 |---|---|---|
 | **M0 Setup** | `git init`, `.gitignore`, scaffold `backend/` + `frontend/`, skema pydantic `Job` | `uvicorn` + `vite` jalan, halaman kosong tampil |
-| **M1 Core data** | FileStore, normalize, classify, dedup, 3 sumber (Remotive, RemoteOK, HN), CLI `fjg scrape` | File `data/jobs/*.jsonl` terisi dan valid |
+| **M1 Core data** | FileStore, normalize, classify (+ kamus Creative), dedup, 3 sumber (**Freelancer.com, JobStreet ID, Himalayas**), CLI `fjg scrape` | File `data/jobs/*.jsonl` terisi dan valid |
 | **M2 API + UI dasar** | `/api/jobs` (filter, sort, paging), tabel hasil, search bar, filter sidebar, **region selector + parsing lokasi/remote scope** | Bisa cari keyword, filter type & region di browser |
 | **M3 Detail + Scrape dari UI** | Drawer detail (Overview/Description/Raw JSON), Scrape modal (region-aware) + progress run | Klik baris → detail lengkap; scrape dari UI berhasil |
 | **M4 Freelance/Gig** | Reddit, Freelancer.com, HN freelancer, parsing budget & durasi | Filter "Gigs" berisi data nyata |
