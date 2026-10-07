@@ -11,6 +11,7 @@ import { ScrapeModal } from "./components/ScrapeModal";
 import { useDebounced, useJobs, useRegions, useSources } from "./hooks/useApi";
 import { isActive, runProgress, useScrapeRun } from "./hooks/useScrapeRun";
 import { DEFAULTS, activeFilterCount, toApiParams, useUrlState, type SearchState } from "./hooks/useUrlState";
+import { ShortcutsHelp } from "./components/ShortcutsHelp";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { api, exportUrl } from "./lib/api";
 import { relTime } from "./lib/format";
@@ -40,6 +41,7 @@ export default function App() {
   const [toast, setToast] = useState<Run | null>(null);
   const [cursor, setCursor] = useState(-1);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const schedules = useSchedules();
 
   const onRunFinish = useCallback((run: Run) => {
@@ -108,6 +110,15 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (typing(e.target) || e.ctrlKey || e.metaKey || e.altKey || scrapeInit) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
+        return;
+      }
+      if (e.key === "Escape" && helpOpen) {
+        setHelpOpen(false);
+        return;
+      }
       if (e.key === "S" && e.shiftKey) {
         e.preventDefault();
         openScrape();
@@ -116,13 +127,19 @@ export default function App() {
       if (s.job) return; // the drawer handles its own keys
       if (e.key === "j" || e.key === "ArrowDown") setCursor((c) => Math.min(items.length - 1, c + 1));
       else if (e.key === "k" || e.key === "ArrowUp") setCursor((c) => Math.max(0, c - 1));
+      else if ((e.key === "s" || e.key === "x") && items[cursor]) {
+        const j = items[cursor];
+        const tag = e.key === "s" ? "keep" : "removed";
+        onUpdateStatus(j.id, j.user_status === tag ? null : tag);
+      } else if (e.key === "n" && s.page < pages) update({ page: s.page + 1 });
+      else if (e.key === "p" && s.page > 1) update({ page: s.page - 1 });
       else if (e.key === "Enter" && items[cursor] && !(e.target instanceof Element && e.target.closest("a, button"))) openJob(items[cursor].id);
       else return;
       e.preventDefault();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [items, cursor, s.job, scrapeInit, openJob, openScrape]);
+  }, [items, cursor, s.job, s.page, pages, scrapeInit, helpOpen, openJob, openScrape, onUpdateStatus, update]);
 
   const { run: activeRun, dismiss } = scrape;
   const closeScrape = useCallback(() => {
@@ -297,6 +314,8 @@ export default function App() {
       {schedulesOpen && (
         <SchedulesPanel items={schedules.items} error={schedules.error} reload={schedules.reload} onClose={() => setSchedulesOpen(false)} />
       )}
+
+      {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
 
       {toast && !scrapeInit && <RunToast run={toast} onView={showNewest} onClose={() => setToast(null)} />}
 

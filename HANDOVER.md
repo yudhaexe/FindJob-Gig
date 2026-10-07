@@ -36,7 +36,7 @@ egister-task.ps1` lalu `npm run fjg -- schedule status` (harus `registered`). Pe
   3. ~~**Kolom tabel bisa diatur**~~ selesai: `COLUMNS` di `Results.tsx` (title wajib; opsional location/source/posted/seniority), menu `ColumnMenu.tsx` (tampil/sembunyi, ↑↓ urutan, reset; localStorage `fjg.columns`). Tanpa TanStack Table (tabel native cukup).
   4. ~~**Dark mode manual toggle**~~ selesai: `ThemeToggle.tsx` (system → light → dark, localStorage `fjg.theme`, `data-theme` di `<html>`, skrip kecil di `index.html` mencegah flash), CSS di `index.css`.
   5. ~~**Retensi data**~~ selesai: `fjg prune --days N [--dry-run]` (default 90) memindahkan `raw/<src>/<tgl>.jsonl` dan `runs/*.json` lama ke `data/archive/{raw,runs}/` (tidak menghapus; `jobs/` tidak disentuh sehingga tag Keep aman; run yang diarsipkan tidak lagi bisa dipakai filter scan history). `FileStore.prune`.
-  6. Sisa shortcut keyboard (yang ada: `/`, `j/k`, `Enter`, `o`, `Esc`, `Shift+S`). Bookmark sudah ada (Keep ★).
+  6. ~~Shortcut keyboard~~ selesai: tambahan `s` (Keep), `x` (Remove/restore), `n`/`p` (halaman), `?` (overlay `ShortcutsHelp.tsx`). Semua butir kode M7 selesai; **sisa: cek visual di browser** (Schedules panel, Export, Columns, tema, shortcut baru).
   - Terverifikasi (2026-10-07): `register-task.ps1` → `schedule status` = `registered`, Start-ScheduledTask hasil 0, 70 tes lulus. **Belum:** UI panel Schedules di browser (Save as schedule, Run now, pause/resume).
 - **Ditunda:** edit penuh query jadwal di panel (sekarang hanya nama/interval/pause/hapus; ubah query = hapus + buat ulang), cron expression, tombol Retry per sumber, panel Runs lengkap (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
 
@@ -136,3 +136,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M7 butir 3**: kolom tabel bisa diatur (ColumnMenu), typecheck + build ok. Belum dicek visual di browser. | Butir 4 dark mode toggle |
 | 2026-10-07 | **M7 butir 4**: toggle tema manual, typecheck + build ok (belum dicek visual) | Butir 5 retensi data (`fjg prune`) |
 | 2026-10-07 | **M7 butir 5**: `fjg prune`, 71 tes lulus | Butir 6 shortcut keyboard, cek visual browser (Schedules, Export, Columns, tema) |
+| 2026-10-07 | **M7 butir 6**: shortcut s/x/n/p/? + overlay bantuan. Kode M7 lengkap; typecheck + build ok | Cek visual browser semua fitur M7, lalu M7 dianggap tutup |
