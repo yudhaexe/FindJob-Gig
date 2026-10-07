@@ -7,11 +7,14 @@ from scraper.base import Source
 from scraper.sources.freelancer import Freelancer
 from scraper.sources.hackernews import HackerNews
 from scraper.sources.himalayas import Himalayas
+from scraper.sources.jobspy import JobSpy
 from scraper.sources.jobstreet import JobStreet
+from scraper.sources.kalibrr import Kalibrr
 from scraper.sources.reddit import Reddit
+from scraper.sources.telegram import Telegram
 
 REGISTRY: dict[str, type[Source]] = {
-    cls.name: cls for cls in (Freelancer, JobStreet, Himalayas, Reddit, HackerNews)
+    cls.name: cls for cls in (Freelancer, JobStreet, Himalayas, Reddit, HackerNews, JobSpy, Kalibrr, Telegram)
 }
 
 

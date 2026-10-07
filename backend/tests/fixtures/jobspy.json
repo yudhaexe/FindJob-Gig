@@ -1,0 +1,32 @@
+[
+  {
+    "id": "in-7199cba3362fe16d",
+    "site": "indeed",
+    "job_url": "https://id.indeed.com/viewjob?jk=7199cba3362fe16d",
+    "job_url_direct": "http://id.indeed.com/job/admin-7199cba3362fe16d",
+    "title": "Videografer & Video Editor",
+    "company": "Independent Recruitment Services",
+    "location": "Tangerang, JW, ID",
+    "date_posted": "2026-10-07",
+    "job_type": "fulltime",
+    "salary_source": "direct_data",
+    "interval": "monthly",
+    "min_amount": "5000000.0",
+    "max_amount": "7000000.0",
+    "currency": "IDR",
+    "is_remote": "False",
+    "description": "Send your CV & Portfolio dengan subject 'Fotografer, Videografer + Editor- Full Name' to: hrbyesti@gmail.com"
+  },
+  {
+    "id": "li-12345678",
+    "site": "linkedin",
+    "job_url": "https://www.linkedin.com/jobs/view/12345678",
+    "title": "Remote Video Editor",
+    "company": "Global Media Co",
+    "location": "Jakarta, Indonesia",
+    "date_posted": "2026-10-06",
+    "job_type": "contract",
+    "is_remote": "True",
+    "description": "We are looking for a remote video editor to join our creative team."
+  }
+]

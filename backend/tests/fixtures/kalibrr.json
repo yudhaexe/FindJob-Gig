@@ -1,0 +1,40 @@
+[
+  {
+    "id": 271951,
+    "name": "Videographer Project Based",
+    "company_name": "Astro Technologies Indonesia",
+    "slug": "videographer-project-based",
+    "tenure": "Freelance",
+    "is_hybrid": true,
+    "is_work_from_home": false,
+    "google_location": {
+      "address_components": {
+        "city": "West Jakarta",
+        "region": "DKI Jakarta",
+        "country": "Indonesia"
+      }
+    },
+    "description": "<p>We are seeking a versatile videographer to produce high-impact videos.</p>",
+    "qualifications": "<ul><li>Proven experience as a Videographer.</li></ul>",
+    "activation_date": "2026-09-29T09:42:42.663842+00:00",
+    "company": {
+      "code": "astro-technologies-indonesia",
+      "name": "Astro Technologies Indonesia"
+    }
+  },
+  {
+    "id": 271952,
+    "name": "Senior Software Engineer",
+    "company_name": "Tech Corp",
+    "slug": "senior-software-engineer",
+    "tenure": "Full-time",
+    "is_hybrid": false,
+    "is_work_from_home": true,
+    "base_salary": 20000000,
+    "maximum_salary": 30000000,
+    "salary_currency": "IDR",
+    "salary_interval": "month",
+    "description": "<p>Develop backend microservices.</p>",
+    "created_at": "2026-09-15T02:46:22.378935+00:00"
+  }
+]

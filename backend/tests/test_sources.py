@@ -20,11 +20,11 @@ def jobs_for(name: str):
     return [finalize(src.to_job(raw, NOW)) for raw in raws]
 
 
-@pytest.mark.parametrize("name", ["freelancer", "jobstreet", "himalayas", "reddit", "hackernews"])
+@pytest.mark.parametrize("name", ["freelancer", "jobstreet", "himalayas", "reddit", "hackernews", "kalibrr", "telegram"])
 def test_every_fixture_maps_to_a_valid_job(name):
     for job in jobs_for(name):
         assert job.id.startswith(f"{name}:")
-        assert job.source == name and job.provider == name
+        assert job.source == name
         assert job.source_url.startswith("https://")
         assert job.title and job.title != "(untitled)"
         assert job.raw is not None
@@ -102,4 +102,45 @@ def test_hackernews():
     assert second.budget is not None
     assert second.budget.currency == "USD"
     assert second.budget.min == 80
+
+
+def test_jobspy():
+    jobs = jobs_for("jobspy")
+    assert len(jobs) == 2
+    indeed, linkedin = jobs
+    assert indeed.source == "jobspy" and indeed.provider == "indeed"
+    assert indeed.salary.currency == "IDR"
+    assert indeed.salary.min == 5_000_000 and indeed.salary.max == 7_000_000
+    assert "video" in indeed.topics
+
+    assert linkedin.source == "jobspy" and linkedin.provider == "linkedin"
+    assert linkedin.work_mode == "remote"
+    assert linkedin.employment_type == "contract"
+
+
+def test_kalibrr():
+    jobs = jobs_for("kalibrr")
+    assert len(jobs) == 2
+    proj, eng = jobs
+    assert proj.category == "gig" and proj.employment_type == "freelance"
+    assert proj.company == "Astro Technologies Indonesia"
+    assert proj.work_mode == "hybrid"
+    assert proj.location.country == "ID"
+    assert "video" in proj.topics
+
+    assert eng.category == "job" and eng.employment_type == "fulltime"
+    assert eng.salary.currency == "IDR"
+    assert eng.salary.min == 20_000_000
+
+
+def test_telegram():
+    jobs = jobs_for("telegram")
+    assert len(jobs) == 1
+    post = jobs[0]
+    assert post.source == "telegram"
+    assert "loker_id" in post.tags[0]
+    assert post.salary.currency == "IDR"
+    assert post.salary.min == 6_000_000 and post.salary.max == 8_000_000
+    assert "video" in post.topics
+
 

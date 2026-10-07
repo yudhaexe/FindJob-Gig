@@ -52,16 +52,45 @@ sources:
     page_size: 30
     attribution: "HN Search powered by Algolia"
 
+  jobspy:
+    enabled: true
+    display_name: "JobSpy (Indeed / Glassdoor / LinkedIn)"
+    category: job
+    markets: [ALL]
+    min_interval: 2.0
+    page_size: 20
+    sites: [indeed, glassdoor, zip_recruiter, linkedin]
+    attribution: null
+
+  kalibrr:
+    enabled: true
+    display_name: "Kalibrr (ID & SEA)"
+    category: job
+    markets: [ID, SEA, APAC]
+    min_interval: 1.0
+    page_size: 30
+    attribution: null
+
+  telegram:
+    enabled: true
+    display_name: "Telegram Job Channels (ID)"
+    category: job
+    markets: [ID, SEA, APAC]
+    min_interval: 2.0
+    page_size: 25
+    channels: [loker_id, idrecruitments]
+    attribution: null
+
 # Named scrape presets: `fjg scrape --preset creative`.
 presets:
   creative:
     label: "Creative / Photo & Video"
     keywords: [photographer, videographer, video editor, photo editor, retoucher, fotografer, videografer, editor video, content creator]
-    sources: [freelancer, jobstreet, himalayas, reddit]
+    sources: [freelancer, jobstreet, himalayas, reddit, jobspy, kalibrr]
   indonesia:
     label: "Indonesia"
     region: ID
-    sources: [jobstreet]
+    sources: [jobstreet, kalibrr, telegram, jobspy]
   gigs:
     label: "Freelance & Gigs"
     keywords: [video editor, web developer, designer, writer, assistant]
