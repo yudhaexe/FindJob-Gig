@@ -9,7 +9,7 @@ from typing import Annotated, Optional
 import typer
 
 from core import config
-from core.models import ScrapeQuery, SourceRunResult
+from core.models import Schedule, ScrapeQuery, SourceRunResult
 from core.paths import DATA_DIR, ensure_data_dirs
 
 app = typer.Typer(help="FindJob&Gig — scrape & manage job data.", no_args_is_help=True)
@@ -102,6 +102,95 @@ def scrape(
     typer.echo(f"Run {run.id}: {run.status}")
     if run.status == "failed":
         raise typer.Exit(1)
+
+
+schedule_app = typer.Typer(help="Scheduled scrapes (data/state/schedules.json).", no_args_is_help=True)
+app.add_typer(schedule_app, name="schedule")
+
+
+@schedule_app.command("list")
+def schedule_list() -> None:
+    """Show schedules, their next run and failure state."""
+    from storage.filestore import FileStore
+
+    items = FileStore().load_schedules()
+    for s in items:
+        state = "on " if s.enabled else "off"
+        nxt = f"{s.next_run_at:%Y-%m-%d %H:%M}Z" if s.next_run_at else "-"
+        typer.echo(f"[{state}] {s.id}  {s.name:24} every {s.every:4} next {nxt}  last={s.last_status or '-'}"
+                   + (f"  ({s.paused_reason})" if s.paused_reason else ""))
+    if not items:
+        typer.echo("No schedules.")
+
+
+@schedule_app.command("add")
+def schedule_add(
+    name: Annotated[str, typer.Option("--name", "-n")],
+    every: Annotated[str, typer.Option(help="30m, 1h, 6h, 12h, 1d …")] = "6h",
+    keyword: Annotated[Optional[list[str]], typer.Option("--keyword", "-k")] = None,
+    source: Annotated[Optional[list[str]], typer.Option("--source", "-s")] = None,
+    region: Annotated[str, typer.Option("--region", "-r")] = "ALL",
+    category: Annotated[str, typer.Option()] = "any",
+    preset: Annotated[Optional[str], typer.Option()] = None,
+    since: Annotated[int, typer.Option()] = 72,
+) -> None:
+    """Add a schedule (same query options as `fjg scrape`)."""
+    from datetime import datetime, timezone
+
+    from scraper import scheduler
+    from storage.filestore import FileStore
+
+    fields: dict = {}
+    if preset:
+        presets = config.load("sources").get("presets", {})
+        if preset not in presets:
+            typer.echo(f"Unknown preset '{preset}'. Available: {', '.join(presets) or '-'}", err=True)
+            raise typer.Exit(2)
+        fields = {k: v for k, v in presets[preset].items() if k in ScrapeQuery.model_fields}
+    try:
+        delta = scheduler.parse_every(every)
+        q = ScrapeQuery(**{
+            **fields,
+            "keywords": _split(keyword) or fields.get("keywords", []),
+            "sources": _split(source) or fields.get("sources", []),
+            "region": region.upper() if region.upper() != "ALL" else fields.get("region", "ALL"),
+            "category": category if category != "any" else fields.get("category", "any"),
+            "since_hours": since,
+        })
+    except ValueError as e:
+        typer.echo(f"Invalid options: {e}", err=True)
+        raise typer.Exit(2) from e
+    now = datetime.now(timezone.utc)
+    sched = Schedule(id=scheduler.new_schedule_id(), name=name, query=q, every=every.lower(),
+                     created_at=now, next_run_at=now + delta)
+    FileStore().update_schedules(lambda items: items.append(sched))
+    typer.echo(f"Added {sched.id} '{name}' every {sched.every}")
+
+
+@schedule_app.command("run-due")
+def schedule_run_due() -> None:
+    """Run every schedule that is due. Safe to call often (Task Scheduler does, every 30 min)."""
+    from scraper import scheduler
+    from storage.filestore import FileStore
+
+    ensure_data_dirs()
+    runs = asyncio.run(scheduler.run_due(FileStore()))
+    for r in runs:
+        typer.echo(f"{r.schedule_id}: run {r.id} {r.status}")
+    if not runs:
+        typer.echo("Nothing due.")
+
+
+@schedule_app.command("status")
+def schedule_status() -> None:
+    """Report whether the Windows Task Scheduler entry from scripts/register-task.ps1 exists."""
+    import subprocess
+
+    if sys.platform != "win32":
+        typer.echo("not-supported")
+        return
+    r = subprocess.run(["schtasks", "/Query", "/TN", "FindJobGig"], capture_output=True, text=True)
+    typer.echo("registered" if r.returncode == 0 else "not-registered")
 
 
 if __name__ == "__main__":

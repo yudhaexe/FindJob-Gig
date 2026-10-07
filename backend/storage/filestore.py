@@ -4,6 +4,7 @@ Layout under DATA_DIR:
     raw/<source>/<YYYY-MM-DD>.jsonl   append-only, one source item per line
     jobs/<source>.jsonl               normalised Job per line, unique by id
     runs/<run_id>.json                one scrape run
+    state/schedules.json              scrape schedules (API, CLI and scheduler share it)
     state/locks/<name>.lock           cross-process locks (CLI and API may run together)
 
 Every rewrite goes to a temp file first and is swapped in with os.replace, so a reader
@@ -15,16 +16,18 @@ from __future__ import annotations
 import os
 import re
 import time
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import orjson
 
 from core import paths
-from core.models import Job, RawRef, Run
+from core.models import Job, RawRef, Run, Schedule
+
+T = TypeVar("T")
 
 # Fields ignored when deciding whether a posting changed. `raw` is excluded because sources
 # embed per-request noise in it (bid counts, tracking tokens); it is still stored.
@@ -225,6 +228,24 @@ class FileStore:
                 (_dumps(j.model_dump(mode="json")) for j in existing.values()),
             )
             return job
+
+    # ── schedules ──────────────────────────────────────────────────────────
+    @property
+    def schedules_path(self) -> Path:
+        return self.state_dir / "schedules.json"
+
+    def load_schedules(self) -> list[Schedule]:
+        if not self.schedules_path.exists():
+            return []
+        return [Schedule.model_validate(x) for x in orjson.loads(self.schedules_path.read_bytes())]
+
+    def update_schedules(self, fn: Callable[[list[Schedule]], T]) -> T:
+        """Read-modify-write under the cross-process lock; `fn` mutates the list in place."""
+        with FileLock(self.state_dir / "locks" / "schedules.lock", timeout=30):
+            items = self.load_schedules()
+            result = fn(items)
+            _atomic_write(self.schedules_path, [orjson.dumps([x.model_dump(mode="json") for x in items], option=orjson.OPT_INDENT_2)])
+            return result
 
     # ── runs ───────────────────────────────────────────────────────────────
     def save_run(self, run: Run) -> None:

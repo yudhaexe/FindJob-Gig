@@ -1,5 +1,5 @@
 import type {
-  Health, Job, JobsPage, RegionsResponse, Run, ScrapeQuery, ScrapeSourcesResponse, SourcesResponse,
+  Health, Job, JobsPage, RegionsResponse, Run, Schedule, ScrapeQuery, ScrapeSourcesResponse, SourcesResponse,
 } from "./types";
 
 export type Params = Record<string, string | number | boolean | undefined>;
@@ -32,6 +32,11 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return ok<T>(await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
 }
 
+async function send<T>(method: "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  return res.status === 204 ? (undefined as T) : ok<T>(res);
+}
+
 export const api = {
   health: () => get<Health>("/api/health"),
   jobs: (params: Params, signal?: AbortSignal) => get<JobsPage>("/api/jobs", params, signal),
@@ -45,5 +50,12 @@ export const api = {
     get<ScrapeSourcesResponse>("/api/scrape/sources", params, signal),
   startScrape: (q: ScrapeQuery) => post<{ run_id: string }>("/api/scrape", q),
   runs: (limit = 30) => get<Run[]>("/api/runs", { limit }),
+  schedules: () => get<Schedule[]>("/api/schedules"),
+  createSchedule: (b: { name: string; every: string; query: ScrapeQuery }) => post<Schedule>("/api/schedules", b),
+  patchSchedule: (id: string, b: Partial<{ name: string; every: string; enabled: boolean }>) =>
+    send<Schedule>("PATCH", `/api/schedules/${encodeURIComponent(id)}`, b),
+  deleteSchedule: (id: string) => send<void>("DELETE", `/api/schedules/${encodeURIComponent(id)}`),
+  runSchedule: (id: string) => post<{ status: string }>(`/api/schedules/${encodeURIComponent(id)}/run`, {}),
+  taskStatus: () => get<{ status: "registered" | "not-registered" | "not-supported" }>("/api/schedules/task-status"),
   run: (id: string) => get<Run>(`/api/runs/${encodeURIComponent(id)}`),
 };

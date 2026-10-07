@@ -5,13 +5,14 @@ import { RegionSelect, regionLabel } from "./components/RegionSelect";
 import {
   Chips, Pagination, ResultsCards, ResultsTable, SkeletonRows, SortSelect, activeChips, type Labels,
 } from "./components/Results";
+import { SchedulesPanel, useSchedules } from "./components/SchedulesPanel";
 import { ScrapeModal } from "./components/ScrapeModal";
 import { useDebounced, useJobs, useRegions, useSources } from "./hooks/useApi";
 import { isActive, runProgress, useScrapeRun } from "./hooks/useScrapeRun";
 import { DEFAULTS, activeFilterCount, useUrlState, type SearchState } from "./hooks/useUrlState";
 import { api } from "./lib/api";
 import { relTime } from "./lib/format";
-import type { Run, ScrapeQuery } from "./lib/types";
+import type { Run, Schedule, ScrapeQuery } from "./lib/types";
 
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
@@ -35,6 +36,8 @@ export default function App() {
   const [scrapeInit, setScrapeInit] = useState<Partial<ScrapeQuery> | null>(null);
   const [toast, setToast] = useState<Run | null>(null);
   const [cursor, setCursor] = useState(-1);
+  const [schedulesOpen, setSchedulesOpen] = useState(false);
+  const schedules = useSchedules();
 
   const onRunFinish = useCallback((run: Run) => {
     setRetry((n) => n + 1);
@@ -144,6 +147,8 @@ export default function App() {
         lastFetched={sources.data?.last_fetched ?? null}
         run={scrape.run}
         onScrape={() => openScrape()}
+        schedules={schedules.items}
+        onSchedules={() => setSchedulesOpen(true)}
       />
 
       {jobs.error && (
@@ -264,7 +269,12 @@ export default function App() {
           onStart={scrape.start}
           onClose={closeScrape}
           onViewResults={showNewest}
+          onScheduleSaved={schedules.reload}
         />
+      )}
+
+      {schedulesOpen && (
+        <SchedulesPanel items={schedules.items} error={schedules.error} reload={schedules.reload} onClose={() => setSchedulesOpen(false)} />
       )}
 
       {toast && !scrapeInit && <RunToast run={toast} onView={showNewest} onClose={() => setToast(null)} />}
@@ -301,6 +311,8 @@ function Header({
   lastFetched,
   run,
   onScrape,
+  schedules,
+  onSchedules,
 }: {
   s: SearchState;
   update: (p: Partial<SearchState>, opts?: { push?: boolean }) => void;
@@ -308,7 +320,10 @@ function Header({
   lastFetched: string | null;
   run: Run | null;
   onScrape: () => void;
+  schedules: Schedule[];
+  onSchedules: () => void;
 }) {
+  const paused = schedules.filter((x) => !x.enabled && x.paused_reason).length;
   const [text, setText] = useState(s.q);
   const sent = useRef(s.q);
   const debounced = useDebounced(text, 250);
@@ -393,6 +408,14 @@ function Header({
           Updated {updated} ago
         </span>
       )}
+      <button
+        type="button"
+        onClick={onSchedules}
+        title="Schedules"
+        className={`h-9 rounded-ui border border-border px-3 hover:bg-surface ${paused ? "text-warning" : ""}`}
+      >
+        ⏱ {paused ? `${paused} paused` : schedules.length}
+      </button>
       <button
         type="button"
         onClick={onScrape}

@@ -23,9 +23,10 @@ interface Props {
   onStart: (q: ScrapeQuery) => Promise<void>;
   onClose: () => void;
   onViewResults: () => void;
+  onScheduleSaved?: () => void;
 }
 
-export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClose, onViewResults }: Props) {
+export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClose, onViewResults, onScheduleSaved }: Props) {
   const [q, setQ] = useState<ScrapeQuery>(() => ({ ...QUERY_DEFAULTS, ...initial }));
   const [draft, setDraft] = useState("");
   const [sources, setSources] = useState<ScrapeSource[] | null>(null);
@@ -33,6 +34,9 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
   const [picked, setPicked] = useState<Set<string>>(new Set(initial.sources ?? []));
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [asSchedule, setAsSchedule] = useState(false);
+  const [schedName, setSchedName] = useState("");
+  const [every, setEvery] = useState("6h");
   const dialog = useRef<HTMLFormElement>(null);
   const keepPicked = useRef(!!initial.sources?.length);
   const running = isActive(run);
@@ -129,7 +133,13 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
     setError(null);
     setStarting(true);
     try {
-      await onStart({ ...q, keywords, location: q.location?.trim() || null, sources: [...picked] });
+      const query = { ...q, keywords, location: q.location?.trim() || null, sources: [...picked] };
+      if (asSchedule) {
+        await api.createSchedule({ name: schedName.trim() || keywords.join(", ") || "Scheduled scrape", every, query });
+        onScheduleSaved?.();
+        setAsSchedule(false);
+      }
+      await onStart(query);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -326,6 +336,21 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
               )}
             </div>
           </fieldset>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={asSchedule} onChange={(e) => setAsSchedule(e.target.checked)} />
+              Save as schedule
+            </label>
+            {asSchedule && (
+              <>
+                <select value={every} onChange={(e) => setEvery(e.target.value)} aria-label="Interval" className={field}>
+                  {["30m", "1h", "6h", "12h", "1d"].map((i) => <option key={i} value={i}>every {i}</option>)}
+                </select>
+                <input value={schedName} onChange={(e) => setSchedName(e.target.value)} placeholder="Name" aria-label="Schedule name" className={`${field} min-w-0 flex-1`} />
+              </>
+            )}
+          </div>
 
           {error && (
             <p role="alert" className="rounded-ui border border-danger/30 bg-danger/10 px-3 py-2 text-danger">

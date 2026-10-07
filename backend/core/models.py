@@ -178,6 +178,21 @@ class Run(BaseModel):
     sources: dict[str, SourceRunResult] = Field(default_factory=dict)
 
 
+class Schedule(BaseModel):
+    id: str
+    name: str
+    enabled: bool = True
+    query: ScrapeQuery
+    every: str = "6h"  # <n>m | <n>h | <n>d, at least 30m
+    created_at: datetime | None = None
+    last_run_id: str | None = None
+    last_run_at: datetime | None = None
+    last_status: RunStatus | None = None
+    next_run_at: datetime | None = None
+    consecutive_failures: int = 0
+    paused_reason: str | None = None
+
+
 class JobsPage(BaseModel):
     items: list[JobSummary]
     total: int

@@ -198,3 +198,17 @@ export interface ScrapeSourcesResponse {
   sources: ScrapeSource[];
   presets: ScrapePreset[];
 }
+
+export interface Schedule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  query: ScrapeQuery;
+  every: string;
+  last_run_id: string | null;
+  last_run_at: string | null;
+  last_status: RunStatus | null;
+  next_run_at: string | null;
+  consecutive_failures: number;
+  paused_reason: string | null;
+}
