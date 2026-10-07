@@ -1,0 +1,29 @@
+# Currency recognition only — amounts are NEVER converted (D13).
+# `symbols` are matched case-sensitively and longest-first; codes are matched as whole words.
+# `$` alone means USD but marks the value as currency_guessed.
+
+codes: [IDR, USD, SGD, MYR, PHP, THB, VND, EUR, GBP, AUD, NZD, CAD, INR, JPY, KRW, CNY, HKD, TWD, AED, SAR, CHF, SEK, NOK, DKK, PLN, BRL, MXN, ZAR]
+
+symbols:
+  "Rp": IDR
+  "S$": SGD
+  "SGD$": SGD
+  "US$": USD
+  "A$": AUD
+  "AU$": AUD
+  "NZ$": NZD
+  "C$": CAD
+  "CA$": CAD
+  "HK$": HKD
+  "RM": MYR
+  "₱": PHP
+  "฿": THB
+  "₫": VND
+  "€": EUR
+  "£": GBP
+  "₹": INR
+  "¥": JPY
+  "₩": KRW
+  "$": USD   # guessed
+
+guessed_symbols: ["$"]

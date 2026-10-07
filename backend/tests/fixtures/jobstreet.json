@@ -1,0 +1,161 @@
+[
+ {
+  "advertiser": {
+   "id": "63120072",
+   "description": "PT SUKSES INDAHKAN RUMAH"
+  },
+  "bulletPoints": [],
+  "branding": {
+   "serpLogoUrl": "https://bx-branding-gateway.cloud.seek.com.au/fc602e73-289d-46e7-8a46-688d810fd861.2/jdpLogo"
+  },
+  "classifications": [
+   {
+    "classification": {
+     "id": "6304",
+     "description": "Advertising, Arts & Media"
+    },
+    "subclassification": {
+     "id": "6313",
+     "description": "Photography"
+    }
+   }
+  ],
+  "companyName": "PT SUKSES INDAHKAN RUMAH",
+  "companyProfileStructuredDataId": 3356046,
+  "displayType": "standard",
+  "employer": {
+   "id": "3356046",
+   "name": "PT SUKSES INDAHKAN RUMAH"
+  },
+  "id": "95005361",
+  "isFeatured": false,
+  "listingDate": "2026-10-01T11:32:33Z",
+  "listingDateDisplay": "6d ago",
+  "locations": [
+   {
+    "label": "West Jakarta, Jakarta",
+    "countryCode": "ID",
+    "seoHierarchy": [
+     {
+      "contextualName": "West Jakarta Jakarta"
+     },
+     {
+      "contextualName": "Jakarta"
+     }
+    ]
+   }
+  ],
+  "roleId": "Photographer-and-Videographer",
+  "salaryLabel": "Rp 5.000.000 – Rp 5.500.000 per month",
+  "solMetadata": {
+   "searchRequestToken": "ce76dd8a-d079-42dc-9101-44a88838b674",
+   "token": "0~ce76dd8a-d079-42dc-9101-44a88838b674",
+   "jobId": "95005361",
+   "section": "MAIN",
+   "sectionRank": 1,
+   "jobAdType": "ORGANIC",
+   "tags": {
+    "mordor__flights": "mordor_1124",
+    "mordor__s": "0"
+   }
+  },
+  "teaser": "Interior photographer and videographer to capture, edit, and create visual content for portfolios, campaigns, and marketing materials.",
+  "title": "Photo & Videographer",
+  "tracking": "ewogICJ0b2tlbiI6ICIxMjM4OTQzNS1hOTU2LTQzMDUtODRiNy0xNDU3NjRhOGFkMGZfMSIKfQ==",
+  "workTypes": [
+   "Contract/Temp"
+  ],
+  "workArrangements": {
+   "data": [
+    {
+     "id": "1",
+     "label": {
+      "text": "On-site"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "advertiser": {
+   "id": "60943141",
+   "description": "PT Metro Mitra Sarana"
+  },
+  "bulletPoints": [],
+  "branding": {
+   "serpLogoUrl": "https://bx-branding-gateway.cloud.seek.com.au/4a43ebf5-59d8-4ebc-8537-fd76fb6f03ed.1/jdpLogo"
+  },
+  "classifications": [
+   {
+    "classification": {
+     "id": "6008",
+     "description": "Marketing & Communications"
+    },
+    "subclassification": {
+     "id": "6010",
+     "description": "Digital & Search Marketing"
+    }
+   }
+  ],
+  "companyName": "Metro Mitra Sarana",
+  "companyProfileStructuredDataId": 439620,
+  "displayStyle": {
+   "search": "sourcrProfile"
+  },
+  "displayType": "standard",
+  "employer": {
+   "id": "439620",
+   "name": "Metro Mitra Sarana",
+   "companyId": "168554113688625",
+   "companyUrl": "https://id.jobstreet.com/companies/metro-mitra-sarana-168554113688625"
+  },
+  "id": "95051442",
+  "isFeatured": false,
+  "listingDate": "2026-10-05T02:58:42Z",
+  "listingDateDisplay": "2d ago",
+  "locations": [
+   {
+    "label": "Tangerang, Banten",
+    "countryCode": "ID",
+    "seoHierarchy": [
+     {
+      "contextualName": "Tangerang Banten"
+     },
+     {
+      "contextualName": "Banten"
+     }
+    ]
+   }
+  ],
+  "roleId": "content-creator",
+  "salaryLabel": "",
+  "solMetadata": {
+   "searchRequestToken": "ce76dd8a-d079-42dc-9101-44a88838b674",
+   "token": "0~ce76dd8a-d079-42dc-9101-44a88838b674",
+   "jobId": "95051442",
+   "section": "MAIN",
+   "sectionRank": 5,
+   "jobAdType": "ORGANIC",
+   "tags": {
+    "mordor__flights": "mordor_1124",
+    "mordor__s": "0"
+   }
+  },
+  "teaser": "Plan, create, and develop creative content to increase brand awareness and digital presence across social media platforms.",
+  "title": "Content Creator",
+  "tracking": "ewogICJ0b2tlbiI6ICIxMjM4OTQzNS1hOTU2LTQzMDUtODRiNy0xNDU3NjRhOGFkMGZfNSIKfQ==",
+  "workTypes": [
+   "Full time"
+  ],
+  "workArrangements": {
+   "data": [
+    {
+     "id": "1",
+     "label": {
+      "text": "On-site"
+     }
+    }
+   ]
+  }
+ }
+]

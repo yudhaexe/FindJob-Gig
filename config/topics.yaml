@@ -1,0 +1,46 @@
+# Topic dictionary — tags a job with a field such as photo/video (VALIDATION.md §5).
+# `include` and `exclude` are regexes, matched case-insensitively with word boundaries in mind.
+# A topic matches when any include hits title/tags/description AND no exclude hits the same text.
+# Excludes exist because loose words collide: "photo" ⊂ "Photovoltaik", "video" ⊂ "Video Games".
+
+photo:
+  label: "Photography"
+  include:
+    - '\b(photograph(er|y|ers)?|fotografer|fotografi|photo ?shoot|pemotretan|headshots?)\b'
+    - '\b(photo|image|foto) ?(editor|editing|retouch(er|ing)?)\b'
+    - '\b(retouch(er|ing)?|lightroom|capture one)\b'
+    - '\b(photo|foto) ?(&|and|/|dan) ?video\w*'
+  exclude:
+    - '\bphoto ?voltai\w*'
+    - '\bphotonic\w*'
+    - '\bphotolitho\w*'
+    - '\bphoto ?id\b'
+
+video:
+  label: "Video"
+  include:
+    - '\b(videograph(er|y)|videografer|cinematograph(er|y)|filmmak(er|ing)|video ?production|videografi)\b'
+    - '\b(video|film) ?(editor|editing|creator)\b'
+    - '\beditor video\b'
+    - '\b(photo|foto) ?(&|and|/|dan) ?video\w*'
+    - '\bshort[- ]?(form )?videos?\b'
+    - '\b(premiere pro|after effects|davinci resolve|final cut|capcut|motion graphics?|color grad(ing|ist))\b'
+    - '\b(reels|youtube (editor|video)|tiktok (editor|content))\b'
+  exclude:
+    - '\bvideo ?games?\b'
+    - '\bvideo ?(call|conferenc\w*|interview)s?\b'
+    - '\bdata annotat\w*'
+    - '\b(cctv|surveillance)\b'
+
+design:
+  label: "Design"
+  include:
+    - '\b(graphic design(er)?|desain(er)? grafis|illustrat(or|ion)|ui/ux|ux designer|ui designer|brand designer)\b'
+  exclude:
+    - '\b(chip|circuit|pcb|mechanical|civil|structural) design\w*'
+
+content:
+  label: "Content creation"
+  include:
+    - '\b(content creator|kreator konten|ugc creator|user[- ]generated content|influencer|social media content)\b'
+  exclude: []

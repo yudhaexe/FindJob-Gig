@@ -1,0 +1,130 @@
+"""FileStore upserts and the scrape runner, using a fake source (no network)."""
+
+import asyncio
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+import orjson
+import pytest
+
+from core.models import Job, ScrapeQuery
+from scraper.base import Http, Source, SourceBlocked
+from scraper.runner import pick_sources, run_scrape
+from storage.filestore import FileLock, FileStore, LockTimeout
+
+NOW = datetime.now(timezone.utc)
+
+
+def _job(id_: str, title: str = "Video Editor", **kw) -> Job:
+    return Job(id=id_, source="fake", source_name="Fake", source_url=f"https://x/{id_}", title=title,
+               fetched_at=kw.pop("fetched_at", NOW), **kw)
+
+
+def test_upsert_new_unchanged_updated(tmp_path):
+    store = FileStore(tmp_path)
+    first = store.upsert_jobs("fake", [_job("fake:1"), _job("fake:2")])
+    assert (first.new, first.updated, first.unchanged) == (2, 0, 0)
+    seen = store.read_jobs("fake")["fake:1"].first_seen_at
+
+    later = NOW + timedelta(hours=1)
+    second = store.upsert_jobs("fake", [
+        _job("fake:1", fetched_at=later, raw={"noise": 1}),       # only volatile fields differ
+        _job("fake:2", title="Senior Video Editor", fetched_at=later),
+    ])
+    assert (second.new, second.updated, second.unchanged) == (0, 1, 1)
+    jobs = store.read_jobs("fake")
+    assert jobs["fake:1"].first_seen_at == seen
+    assert jobs["fake:1"].updated_at == NOW
+    assert jobs["fake:2"].updated_at == later and jobs["fake:2"].title == "Senior Video Editor"
+    assert store.get_job("fake:2").title == "Senior Video Editor"
+    assert not list((tmp_path / "jobs").glob("*.tmp"))
+
+
+def test_corrupt_line_is_skipped(tmp_path):
+    store = FileStore(tmp_path)
+    store.upsert_jobs("fake", [_job("fake:1")])
+    with open(store.jobs_path("fake"), "ab") as f:
+        f.write(b"{not json\n")
+    assert list(store.read_jobs("fake")) == ["fake:1"]
+
+
+def test_append_raw_returns_line_refs(tmp_path):
+    store = FileStore(tmp_path)
+    a = store.append_raw("fake", [{"n": 1}, {"n": 2}], NOW)
+    b = store.append_raw("fake", [{"n": 3}], NOW)
+    assert [r.line for r in a + b] == [1, 2, 3]
+    lines = (tmp_path / b[0].file).read_bytes().splitlines()
+    assert orjson.loads(lines[b[0].line - 1]) == {"n": 3}
+
+
+def test_lock_blocks_second_holder(tmp_path):
+    path = tmp_path / "x.lock"
+    with FileLock(path):
+        with pytest.raises(LockTimeout):
+            with FileLock(path, timeout=0.2):
+                pass
+    with FileLock(path, timeout=0.2):
+        pass
+
+
+class FakeSource(Source):
+    name = "fake"
+    display_name = "Fake"
+    category = "gig"
+
+    def __init__(self, items: dict[str, list[dict]], blocked: bool = False) -> None:
+        super().__init__({"enabled": True, "min_interval": 0})
+        self.items = items
+        self.blocked = blocked
+
+    async def search(self, keyword, q, limit, http: Http) -> list[dict[str, Any]]:
+        if self.blocked:
+            raise SourceBlocked("403 Forbidden")
+        return self.items.get(keyword, [])[:limit]
+
+    def to_job(self, raw, fetched_at):
+        if raw.get("broken"):
+            raise KeyError("title")
+        return Job(id=f"fake:{raw['id']}", source="fake", source_name="Fake", source_url=f"https://x/{raw['id']}",
+                   title=raw["title"], category="gig", posted_at=raw.get("posted_at"), fetched_at=fetched_at, raw=raw)
+
+
+class BlockedSource(FakeSource):
+    name = "blocked"
+
+
+def test_runner_end_to_end(tmp_path):
+    old = (NOW - timedelta(days=30)).isoformat()
+    fake = FakeSource({
+        "video editor": [{"id": 1, "title": "Freelance Video Editor"}, {"id": 2, "title": "Video Editor", "posted_at": old}],
+        "photographer": [{"id": 1, "title": "Freelance Video Editor"}, {"id": 3, "title": "Photographer"},
+                         {"id": 4, "broken": True}],
+    })
+    blocked = BlockedSource({}, blocked=True)
+    store = FileStore(tmp_path)
+    q = ScrapeQuery(keywords=["video editor", "photographer"], since_hours=72)
+    run = asyncio.run(run_scrape(q, store=store, available={"fake": fake, "blocked": blocked}))
+
+    assert run.status == "partial"
+    r = run.sources["fake"]
+    assert (r.status, r.fetched, r.new, r.skipped) == ("done", 4, 2, 2)  # 1 too old + 1 unparseable
+    assert "could not be parsed" in r.error
+    assert run.sources["blocked"].status == "error" and "403" in run.sources["blocked"].error
+
+    jobs = store.read_jobs("fake")
+    assert set(jobs) == {"fake:1", "fake:3"}
+    assert jobs["fake:1"].matched_queries == ["photographer", "video editor"]
+    assert jobs["fake:1"].raw_ref.line >= 1
+    assert "video" in jobs["fake:1"].topics
+    assert store.load_run(run.id).status == "partial"
+
+
+def test_pick_sources_by_region_and_category():
+    jobstreet_like = FakeSource({})
+    jobstreet_like.markets = ["ID", "SEA"]
+    available = {"fake": jobstreet_like}
+    assert pick_sources(ScrapeQuery(region="SG"), available) == [jobstreet_like]
+    assert pick_sources(ScrapeQuery(region="EU"), available) == []
+    assert pick_sources(ScrapeQuery(category="job"), available) == []
+    with pytest.raises(ValueError):
+        pick_sources(ScrapeQuery(sources=["nope"]), available)

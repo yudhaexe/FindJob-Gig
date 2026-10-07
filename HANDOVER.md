@@ -13,11 +13,12 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 
 ## Status Saat Ini
 
-- **Fase:** **M0 selesai** (2026-10-07). Berikutnya **M1**.
-- **Kode:** scaffold backend (FastAPI + skema pydantic di `backend/core/models.py`, endpoint `/api/health` + stub `/api/jobs`, CLI `fjg info`, 3 test lulus) dan frontend (Vite 8 + React 19 + TS 7 + Tailwind 4, shell header + empty state, proxy `/api` → :8000). Branch `main`, commit terakhir: `8d64998` (lihat `git log`).
-- **Validasi sumber selesai** (fokus freelance foto/video): lihat [VALIDATION.md](VALIDATION.md). Script probe ada di `backend/probes/`.
-- **Mode provider:** fallback (D15), sudah disetujui user.
-- **Next step:** M1 = `storage/filestore.py` (JSONL + atomic write + lock), `scraper/base.py`, normalize/classify (+ kamus Creative)/dedup, sumber **Freelancer.com + JobStreet ID + Himalayas**, `fjg scrape`.
+- **Fase:** **M1 selesai** (2026-10-07). Berikutnya **M2**.
+- **Kode M1:** `storage/filestore.py` (JSONL, atomic replace, lock file per sumber, runs), `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`. 46 test lulus (fixture asli di `backend/tests/fixtures/`).
+- **Terverifikasi nyata:** `fjg scrape --preset creative --max 30 --since 168` → jobstreet 67, freelancer 126, himalayas 28 job tersimpan (~25 dtk). Scrape ulang → `new=0 updated=0` (idempoten).
+- **Mode provider:** fallback (D15). Saat ini tiap sumber baru punya 1 provider; kolom `provider` sudah ada di `Job`.
+- **Next step (M2):** `storage/index.py` (load JSONL → index in-memory, reload by mtime, `dedup.group_duplicates`), `/api/jobs` filter/sort/paging/facets + `/api/regions`, UI tabel + search + filter sidebar + region selector.
+- **Belum dikerjakan dari desain:** `fjg reindex` (re-normalize dari raw), `state/sources.json` (fail_count/auto-disable), detail call JobStreet (deskripsi penuh; sekarang hanya teaser).
 
 ## Cara Menjalankan
 
@@ -30,7 +31,7 @@ Semua dari **root repo** (butuh Node ≥ 20 + Python ≥ 3.11):
 | `npm test` | pytest backend + typecheck frontend |
 | `npm run build` | Build frontend ke `frontend/dist` |
 | `npm run serve` | Build lalu serve semuanya dari FastAPI di :8000 (mode produksi) |
-| `npm run fjg -- <args>` | CLI, mis. `npm run fjg -- info` |
+| `npm run fjg -- <args>` | CLI, mis. `npm run fjg -- scrape --preset creative`, `npm run fjg -- scrape -k "video editor" -s jobstreet --since 72`, `npm run fjg -- sources` |
 | `start.bat` | Double-click: install bila belum, lalu `npm start` |
 
 Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
@@ -54,6 +55,9 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 | D13 | **Tanpa konversi mata uang**; sort/filter salary hanya aktif bila Currency dipilih | User (rev 3); membandingkan mata uang berbeda tidak valid tanpa kurs |
 | D14 | **Region focus** + All regions, hierarki di `config/regions.yaml`; job remote worldwide ikut tampil di region mana pun (toggle) | User (rev 3) |
 | D15 | Multi-provider per sumber, **default mode `fallback`**; `parallel` opsional per sumber; provider baru `enabled: false` sampai lolos probe | User (2026-10-07). Hemat request & risiko ban kecil |
+| D16 | Kode region tidak boleh sama dengan kode negara ISO → South Asia = `SAS` (bukan `SA` = Saudi Arabia) | Region bisa berupa negara (`?region=SG`) |
+| D17 | `duplicates` dihitung saat baca (index), tidak ditulis ke file; job tanpa company tidak di-dedup lintas sumber | Selalu konsisten; judul gig saja terlalu sering bentrok |
+| D18 | Salary tebakan dari **deskripsi** hanya diterima bila ada periode (/hr, per month, …); dari **judul** selalu diterima | Deskripsi penuh angka pendanaan/harga ("US$218M") |
 
 ## Gotchas
 
@@ -69,6 +73,10 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 - Nama folder mengandung `&`, jadi path harus selalu di-quote: `"D:\Github\FindJob&Gig"`.
 - **Commit tanpa `Co-Authored-By`** atau atribusi tambahan (permintaan user).
 - **`&` di path merusak shim `.cmd` npm** (`node_modules\.bin\*.cmd`) di Windows. Karena itu script di `frontend/package.json` memanggil tool lewat `node node_modules/<pkg>/bin/...`. Jangan pakai `npx vite`/`tsc` langsung; tambahkan tool baru dengan pola yang sama.
+- **JobStreet** search API hanya memberi teaser; `daterange` hanya menerima 1/3/7/14/31 hari; `pageSize` bisa sampai 100. Header browser UA diperlukan.
+- **Himalayas** search: 20 job/halaman lewat `page`, filter `country=<nama negara>`. Banyak job lama, jadi `--since` kecil membuang sebagian besar hasil.
+- **Freelancer.com** search fuzzy (keyword "retoucher" bisa mengembalikan "Retype Pages"); `topics` membantu memilah. Perlu `location_details=true` agar gig onsite punya lokasi.
+- Output CLI berisi ✓/✗; saat di-pipe di Windows tampil `?` (stdout di-set `errors="replace"`), bukan error.
 - Starlette mengeluarkan DeprecationWarning "install httpx2" di TestClient. Ini aman diabaikan.
 
 ## Pertanyaan Terbuka
@@ -86,3 +94,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Root `npm i` / `npm start` / `npm test` / `serve` / `fjg` (scripts/*.mjs). Diuji dari clean install. Audit repo & library (PLANNING §3). Commit pertama tanpa co-author (permintaan user) | M1 |
 | 2026-10-07 | Validasi nyata 18 sumber + 8 kasus JobSpy untuk freelance foto/video → VALIDATION.md; prioritas sumber & M1 diubah | M1 |
 | 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1. User setuju fallback (D15). Commit `8d64998` | M1 |
+| 2026-10-07 | **M1 selesai**: FileStore, runner, classify (rules/skills/topics yaml), money, regions, dedup, 3 connector (Freelancer, JobStreet, Himalayas), `fjg scrape`/`sources`. 46 test. Scrape nyata preset creative OK & idempoten | M2 |

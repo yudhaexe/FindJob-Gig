@@ -70,6 +70,7 @@ class Job(BaseModel):
     fingerprint: str | None = None
     source: str
     source_name: str
+    provider: str | None = None  # implementation that fetched it (DESIGN-SYSTEM §12)
     source_url: str
     apply_url: str | None = None
     duplicates: list[str] = Field(default_factory=list)
@@ -91,7 +92,8 @@ class Job(BaseModel):
     duration: Duration | None = None
 
     skills: list[str] = Field(default_factory=list)
-    tags: list[str] = Field(default_factory=list)
+    topics: list[str] = Field(default_factory=list)  # keys of config/topics.yaml, e.g. "photo"
+    tags: list[str] = Field(default_factory=list)  # original tags from the source
     description_text: str | None = None
     description_html: str | None = None
 
@@ -126,6 +128,7 @@ class JobSummary(BaseModel):
     budget: Budget | None = None
     duration: Duration | None = None
     skills: list[str] = Field(default_factory=list)
+    topics: list[str] = Field(default_factory=list)
     posted_at: datetime | None = None
     duplicate_count: int = 0
 

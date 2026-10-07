@@ -1,0 +1,455 @@
+[
+ {
+  "id": 40754566,
+  "title": "Birthday Video Montage Creation",
+  "status": "active",
+  "seo_url": "photography/Birthday-Video-Montage-Creation",
+  "currency": {
+   "id": 1,
+   "code": "USD",
+   "sign": "$",
+   "name": "US Dollar",
+   "exchange_rate": 1.0,
+   "country": "US",
+   "is_external": false,
+   "is_escrowcom_supported": true
+  },
+  "description": "I'm looking for a talented photographer/videographer to capture my child's birthday moments. The captured content will be used to create a sentimental and heartwarming video montage.\n\nKey Requirements:\n- Capture a mix of solo shots and group shots with family and friends.\n- The theme is a birthday celebration.\n- The style should be sentimental and heartwarming.\n\nIdeal Skills and Experience:\n- Experience in children's photography/videography\n- Ability to capture candid, emotional moments\n- Proficiency in video editing to create cohesive montages",
+  "jobs": [
+   {
+    "id": 27,
+    "name": "Photography",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photography",
+    "local": true
+   },
+   {
+    "id": 52,
+    "name": "Video Services",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "video_services",
+    "local": false
+   },
+   {
+    "id": 475,
+    "name": "Videography",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "videography",
+    "local": true
+   },
+   {
+    "id": 676,
+    "name": "Video Production",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "video_production",
+    "local": false
+   },
+   {
+    "id": 688,
+    "name": "Video Editing",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "video_editing",
+    "local": false
+   },
+   {
+    "id": 1030,
+    "name": "Cinematography",
+    "category": {
+     "id": 1,
+     "name": "Websites, IT & Software"
+    },
+    "seo_url": "cinematography",
+    "local": false
+   },
+   {
+    "id": 1374,
+    "name": "Video Processing",
+    "category": {
+     "id": 5,
+     "name": "Engineering & Science"
+    },
+    "seo_url": "video_processing",
+    "local": false
+   },
+   {
+    "id": 1673,
+    "name": "Video Post-editing",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "video_post_editing",
+    "local": false
+   }
+  ],
+  "submitdate": 1791350770,
+  "preview_description": "I'm looking for a talented photographer/videographer to capture my child's birthday moments. The cap",
+  "deleted": false,
+  "nonpublic": false,
+  "hidebids": false,
+  "type": "fixed",
+  "bidperiod": 7,
+  "budget": {
+   "minimum": 30.0,
+   "maximum": 250.0
+  },
+  "featured": false,
+  "urgent": false,
+  "bid_stats": {
+   "bid_count": 56,
+   "bid_avg": 97.25
+  },
+  "time_submitted": 1791350770,
+  "time_updated": 1791350770,
+  "upgrades": {
+   "featured": false,
+   "sealed": false,
+   "nonpublic": false,
+   "fulltime": false,
+   "urgent": false,
+   "qualified": false,
+   "NDA": false,
+   "ip_contract": false,
+   "non_compete": false,
+   "project_management": false,
+   "pf_only": false,
+   "premium": false,
+   "enterprise": false
+  },
+  "language": "en",
+  "hireme": false,
+  "frontend_project_status": "open",
+  "location": {
+   "country": {},
+   "timezone": {}
+  },
+  "local": false,
+  "time_free_bids_expire": 1791347131,
+  "pool_ids": [
+   "freelancer"
+  ],
+  "enterprise_ids": [],
+  "is_escrow_project": false,
+  "is_seller_kyc_required": false,
+  "is_buyer_kyc_required": false,
+  "enterprises": [],
+  "group_ids": []
+ },
+ {
+  "id": 40752364,
+  "title": "Candid Birthday Party Photography in Buderim",
+  "status": "active",
+  "seo_url": "event-photography/Candid-Birthday-Party-Photography-40752364",
+  "currency": {
+   "id": 3,
+   "code": "AUD",
+   "sign": "$",
+   "name": "Australian Dollar",
+   "exchange_rate": 0.69514,
+   "country": "AU",
+   "is_external": false,
+   "is_escrowcom_supported": true
+  },
+  "description": "I'm looking for a skilled photographer to capture my birthday party in Buderim. The event will last for 2 hours.\n\nKey Requirements:\n- Duration: 2 hours\n- Event Type: Birthday party\n- Key Moments: Candid shots of guests, group photos\n- Style: Candid\n\nIdeal Skills and Experience:\n- Experience in event photography, particularly for birthday parties\n- Ability to capture candid moments naturally\n- Proficient in group photo composition\n- Own professional-grade camera and equipment\n- Good interpersonal skills to blend in with guests",
+  "jobs": [
+   {
+    "id": 27,
+    "name": "Photography",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photography",
+    "local": true
+   },
+   {
+    "id": 57,
+    "name": "Photoshop",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photoshop",
+    "local": false
+   },
+   {
+    "id": 204,
+    "name": "Photo Editing",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photo_editing",
+    "local": false
+   },
+   {
+    "id": 663,
+    "name": "Social Media Marketing",
+    "category": {
+     "id": 6,
+     "name": "Sales & Marketing"
+    },
+    "seo_url": "social_media_marketing",
+    "local": false
+   },
+   {
+    "id": 1071,
+    "name": "Photo Retouching",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photo_retouching",
+    "local": false
+   },
+   {
+    "id": 2075,
+    "name": "Content Creation",
+    "category": {
+     "id": 2,
+     "name": "Writing & Content"
+    },
+    "seo_url": "content_creation",
+    "local": false
+   },
+   {
+    "id": 3445,
+    "name": "Event Photography",
+    "category": {
+     "id": 12,
+     "name": "Trades & Services"
+    },
+    "seo_url": "event_photography",
+    "local": false
+   }
+  ],
+  "submitdate": 1791260820,
+  "preview_description": "I'm looking for a skilled photographer to capture my birthday party in Buderim. The event will last ",
+  "deleted": false,
+  "nonpublic": false,
+  "hidebids": false,
+  "type": "hourly",
+  "bidperiod": 7,
+  "budget": {
+   "minimum": 25.0,
+   "maximum": 50.0
+  },
+  "hourly_project_info": {
+   "commitment": {
+    "hours": 40,
+    "interval": "week"
+   },
+   "duration_enum": "unspecified"
+  },
+  "featured": false,
+  "urgent": false,
+  "bid_stats": {
+   "bid_count": 0
+  },
+  "time_submitted": 1791260820,
+  "time_updated": 1791260820,
+  "upgrades": {
+   "featured": false,
+   "sealed": false,
+   "nonpublic": false,
+   "fulltime": false,
+   "urgent": false,
+   "qualified": false,
+   "NDA": false,
+   "ip_contract": false,
+   "non_compete": false,
+   "project_management": false,
+   "pf_only": false,
+   "premium": false,
+   "enterprise": false
+  },
+  "language": "en",
+  "hireme": false,
+  "frontend_project_status": "open",
+  "location": {
+   "country": {
+    "name": "Australia"
+   },
+   "latitude": -26.676000000000002,
+   "longitude": 153.059,
+   "vicinity": "Buderim",
+   "administrative_area": "Queensland",
+   "administrative_area_code": "QLD",
+   "postal_code": "4556",
+   "timezone": {}
+  },
+  "local": true,
+  "time_free_bids_expire": 1791257200,
+  "pool_ids": [
+   "freelancer"
+  ],
+  "enterprise_ids": [],
+  "is_escrow_project": false,
+  "is_seller_kyc_required": false,
+  "is_buyer_kyc_required": false,
+  "enterprises": [],
+  "group_ids": []
+ },
+ {
+  "id": 40755022,
+  "title": "Swedish Urban Film Location Photography",
+  "status": "active",
+  "seo_url": "photography/Swedish-Urban-Film-Location-Photography",
+  "currency": {
+   "id": 8,
+   "code": "EUR",
+   "sign": "€",
+   "name": "Euro",
+   "exchange_rate": 1.117696,
+   "country": "EU",
+   "is_external": false,
+   "is_escrowcom_supported": true
+  },
+  "description": "I’m preparing a feature film and want a local photographer to scout and shoot Swedish urban locations that could double as our future set. The vibe I’m after is a mix of sleek, modern architecture and intimate, quiet neighborhoods—places that feel contemporary yet lived-in.  \n\nHere’s how I see the assignment working: you identify promising streets, squares, courtyards, façades or alleyways anywhere in Sweden, visit them at different times of day, and supply high-resolution images that let me judge both the design details and the way natural light shifts across the scene. Morning, afternoon and evening samples are essential so I can compare lighting moods before locking our shooting schedule.  \n\nPlease photograph in RAW as well as JPEG, geotag each shot, and note practical information such as noise levels, pedestrian or traffic flow, and any obvious permit issues you spot. A short written impression for every spot (two or three sentences) will help me visualise story beats.  \n\nDeliverables  \n• 12–15 distinct locations, each with:  \n   – 6–10 high-res photos covering wide, medium and detail angles  \n   – Shots from at least two different times of day  \n   – GPS coordinates and a brief location note  \n• All files delivered via a shared cloud folder, organised by location name  \n\nIf you already have a DSLR or mirrorless kit, a sturdy tripod for low-light frames, and an eye for cinematic composition, I’d love to see a small sample portfolio of urban work when you bid. Let’s create a strong visual library that lets my production designer hit the ground running.",
+  "jobs": [
+   {
+    "id": 27,
+    "name": "Photography",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photography",
+    "local": true
+   },
+   {
+    "id": 204,
+    "name": "Photo Editing",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "photo_editing",
+    "local": false
+   },
+   {
+    "id": 445,
+    "name": "Visual Arts",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "visual_arts",
+    "local": false
+   },
+   {
+    "id": 623,
+    "name": "Creative Writing",
+    "category": {
+     "id": 2,
+     "name": "Writing & Content"
+    },
+    "seo_url": "creative_writing",
+    "local": false
+   },
+   {
+    "id": 999,
+    "name": "Image Processing",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "image_processing",
+    "local": false
+   },
+   {
+    "id": 1030,
+    "name": "Cinematography",
+    "category": {
+     "id": 1,
+     "name": "Websites, IT & Software"
+    },
+    "seo_url": "cinematography",
+    "local": false
+   },
+   {
+    "id": 2215,
+    "name": "Film Production",
+    "category": {
+     "id": 3,
+     "name": "Design, Media & Architecture"
+    },
+    "seo_url": "film_production",
+    "local": false
+   }
+  ],
+  "submitdate": 1791367935,
+  "preview_description": "I’m preparing a feature film and want a local photographer to scout and shoot Swedish urban location",
+  "deleted": false,
+  "nonpublic": false,
+  "hidebids": false,
+  "type": "fixed",
+  "bidperiod": 7,
+  "budget": {
+   "minimum": 250.0,
+   "maximum": 750.0
+  },
+  "featured": false,
+  "urgent": false,
+  "bid_stats": {
+   "bid_count": 12,
+   "bid_avg": 407.8333333333333
+  },
+  "time_submitted": 1791367935,
+  "time_updated": 1791367935,
+  "upgrades": {
+   "featured": false,
+   "sealed": false,
+   "nonpublic": false,
+   "fulltime": false,
+   "urgent": false,
+   "qualified": false,
+   "NDA": false,
+   "ip_contract": false,
+   "non_compete": false,
+   "project_management": false,
+   "pf_only": false,
+   "premium": false,
+   "enterprise": false
+  },
+  "language": "en",
+  "hireme": false,
+  "frontend_project_status": "open",
+  "location": {
+   "country": {
+    "name": "Sweden"
+   },
+   "latitude": 59.333,
+   "longitude": 18.066,
+   "vicinity": "Stockholm",
+   "administrative_area": "Stockholm County",
+   "timezone": {}
+  },
+  "local": true,
+  "time_free_bids_expire": 1791362575,
+  "pool_ids": [
+   "freelancer"
+  ],
+  "enterprise_ids": [],
+  "is_escrow_project": false,
+  "is_seller_kyc_required": false,
+  "is_buyer_kyc_required": false,
+  "enterprises": [],
+  "group_ids": []
+ }
+]

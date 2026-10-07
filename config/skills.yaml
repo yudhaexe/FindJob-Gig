@@ -1,0 +1,58 @@
+# Skill dictionary: canonical name → aliases (lowercase). Matched with word boundaries.
+# The canonical name is also matched, so list only extra spellings as aliases.
+
+# Creative — photo
+photography: [photo shoot, photoshoot, fotografi, pemotretan]
+photo editing: [photo editor, photo retouching, retouching, retouch, image editing, edit foto]
+adobe photoshop: [photoshop]
+adobe lightroom: [lightroom, lightroom classic, lr classic]
+capture one: []
+product photography: [foto produk, ecommerce photography, e-commerce photography]
+wedding photography: [foto pernikahan, prewedding, pre-wedding]
+portrait photography: [headshot, headshots, portrait photographer]
+event photography: [event photographer, foto event]
+real estate photography: [real estate photographer, property photography]
+drone: [drone pilot, aerial photography, aerial video, fpv]
+
+# Creative — video
+videography: [videographer, videografer, video production, video shooting, cinematography, cinematographer]
+video editing: [video editor, editor video, edit video, post-production, post production, video montage]
+adobe premiere pro: [premiere pro, premiere, adobe premiere]
+adobe after effects: [after effects]
+davinci resolve: [davinci]
+final cut pro: [final cut, fcpx, fcp]
+capcut: [cap cut]
+color grading: [colour grading, color correction, colour correction]
+motion graphics: [motion graphic, motion design, motion designer]
+animation: [animator, 2d animation, 3d animation, animasi]
+sound design: [audio editing, sound editing, audio mixing]
+youtube: [youtube editing, youtube video, youtuber]
+short-form video: [reels, instagram reels, tiktok, youtube shorts, short form video]
+live streaming: [livestream, live stream, live streamer]
+
+# Creative — design & content
+graphic design: [graphic designer, desain grafis, desainer grafis]
+adobe illustrator: [adobe illustrator cc]
+canva: []
+figma: []
+blender: []
+cinema 4d: [c4d]
+content creation: [content creator, ugc, user generated content, kreator konten]
+copywriting: [copywriter]
+social media: [social media marketing, smm, social media manager]
+
+# General tech (common enough to be worth tagging)
+javascript: [js, ecmascript]
+typescript: []
+react: [reactjs, react.js]
+next.js: [nextjs]
+vue: [vuejs, vue.js]
+node.js: [nodejs]
+python: []
+django: []
+php: []
+laravel: []
+wordpress: []
+shopify: []
+sql: [mysql, postgresql, postgres]
+microsoft excel: [ms excel]

@@ -54,6 +54,7 @@ Prinsip: **raw selalu disimpan**. Kalau logika normalize/classify diperbaiki, cu
   "fingerprint": "a1b2c3…",            // sha1(norm(title)+norm(company)) untuk dedup lintas sumber
   "source": "remotive",
   "source_name": "Remotive",
+  "provider": "remotive",              // implementasi yang mengambil data (§12)
   "source_url": "https://remotive.com/remote-jobs/…",
   "apply_url": "https://…",            // bisa sama dengan source_url
   "duplicates": ["remoteok:998877"],   // id job sama di sumber lain
@@ -96,6 +97,7 @@ Prinsip: **raw selalu disimpan**. Kalau logika normalize/classify diperbaiki, cu
   },
 
   "skills": ["react", "typescript", "nextjs"],
+  "topics": ["video"],                 // kunci dari config/topics.yaml (photo, video, design, content)
   "tags": ["frontend"],                // tag asli dari sumber
   "description_text": "…",             // teks penuh (plain)
   "description_html": "…",             // HTML asli bila ada (disanitasi saat tampil)
@@ -160,6 +162,7 @@ config/                       # di-commit
 ├─ skills.yaml                       # kamus skill (~300 entri + alias)
 ├─ rules.yaml                        # regex type/work_mode/seniority/duration/salary
 ├─ regions.yaml                      # hierarki region → negara, alias lokasi, timezone
+├─ topics.yaml                       # kamus topik (photo/video/design/content) + exclude
 ├─ currencies.yaml                   # simbol & kode mata uang untuk parsing (tanpa kurs)
 └─ telegram_channels.yaml, ats_companies.yaml
 ```
@@ -188,11 +191,11 @@ User memilih **satu region fokus** (atau **All regions**) di header. Pilihan ini
 ```yaml
 ALL:   { label: "All regions" }
 GLOBAL_REMOTE: { label: "Worldwide remote" }     # hanya remote_scope = worldwide
-APAC:  { label: "Asia Pacific", children: [SEA, EA, SA, OC] }
+APAC:  { label: "Asia Pacific", children: [SEA, EA, SAS, OC] }
 SEA:   { label: "Southeast Asia", countries: [ID, SG, MY, TH, VN, PH] }
 ID:    { label: "Indonesia", countries: [ID], aliases: [jakarta, bandung, surabaya, bali, yogyakarta, jabodetabek, tangerang, bekasi, depok] }
 EA:    { label: "East Asia", countries: [JP, KR, CN, HK, TW] }
-SA:    { label: "South Asia", countries: [IN, PK, BD, LK] }
+SAS:   { label: "South Asia", countries: [IN, PK, BD, LK] }   # bukan "SA": itu kode negara Saudi Arabia
 OC:    { label: "Oceania", countries: [AU, NZ] }
 EU:    { label: "Europe", countries: [DE, NL, GB, FR, ES, PL, …], aliases: [emea, cet, europe] }
 NA:    { label: "North America", countries: [US, CA], aliases: [usa, "us only", est, pst] }
@@ -200,7 +203,7 @@ LATAM: { label: "Latin America", countries: [BR, MX, AR, CO, …] }
 MEA:   { label: "Middle East & Africa", countries: [AE, SA, EG, NG, ZA, KE, …] }
 ```
 
-Region juga bisa berupa satu negara (`?region=SG`). Daftar region bisa diedit tanpa mengubah kode.
+Region juga bisa berupa satu negara (`?region=SG`), jadi kode region **tidak boleh sama** dengan kode negara ISO. Negara (nama + alias kota) ada di bagian `countries:` file yang sama. Daftar region bisa diedit tanpa mengubah kode.
 
 ### Aturan pencocokan (filter hasil)
 
@@ -266,7 +269,8 @@ Semua rule di `config/rules.yaml`, dievaluasi berurutan, **match pertama menang*
 ## 7. Dedup
 
 1. Dalam satu sumber: unik by `id`.
-2. Lintas sumber: `fingerprint = sha1(norm(title) + "|" + norm(company))`, window 14 hari. Job duplikat **tetap disimpan**, tapi di UI dikelompokkan: yang paling lengkap jadi "utama", yang lain di `duplicates` (tampil "juga ada di: RemoteOK, LinkedIn").
+2. Lintas sumber: `fingerprint = sha1(norm(title) + "|" + norm(company))`, window 14 hari. `norm` membuang aksen, tanda baca dan badan usaha (PT, CV, Inc, LLC, …). Tanpa company (mis. gig Freelancer.com) → `fingerprint = null`, tidak di-dedup lintas sumber karena judul saja ("Video Editor") terlalu sering bentrok.
+3. Job duplikat **tetap disimpan** di file masing-masing. `duplicates` **dihitung saat baca** (`dedup.group_duplicates`, dipakai Index di M2), bukan ditulis ke file, supaya selalu konsisten dengan isi file. Yang paling lengkap jadi "utama", yang lain tampil "juga ada di: RemoteOK, LinkedIn".
 
 ## 8. API
 
@@ -330,20 +334,22 @@ FindJob&Gig/
 ## 11. Kontrak Connector
 
 ```python
-class Source(Protocol):
-    name: str                # "remotive"
-    display_name: str        # "Remotive"
-    category: Literal["job", "gig", "mixed"]
-    markets: set[str]        # kode region dari regions.yaml, mis. {"ALL"} / {"ID"} / {"SEA","APAC"}
-    supports_keyword: bool   # False → runner filter keyword secara lokal
-    rate_limit: float        # request per detik
-    attribution: str | None
+class Source:                       # scraper/base.py
+    name: ClassVar[str]             # "freelancer"
+    display_name: ClassVar[str]     # "Freelancer.com"
+    category: ClassVar[Literal["job", "gig", "mixed"]]
+    # dari config/sources.yaml: enabled, markets, min_interval (detik antar request), page_size, attribution
 
-    async def fetch(self, q: ScrapeQuery, client: httpx.AsyncClient) -> list[dict]: ...
-    def to_job(self, raw: dict) -> Job: ...
+    async def search(self, keyword: str | None, q: ScrapeQuery, limit: int, http: Http) -> list[dict]: ...
+    def external_id(self, raw: dict) -> str: ...          # default raw["id"]
+    def to_job(self, raw: dict, fetched_at: datetime) -> Job: ...
 ```
 
-Menambah sumber baru = 1 file + 1 entri di `config/sources.yaml` + 1 fixture test.
+- `Http` membungkus `httpx.AsyncClient`: jeda `min_interval` per sumber, retry 3× untuk error jaringan/5xx/429 (hormati `Retry-After`), 403 → `SourceBlocked`.
+- **Runner** (`scraper/runner.py`) yang mengurus loop keyword, dedup per `external_id` (+ `matched_queries`), simpan raw, `finalize()` (HTML → teks, fingerprint, classify), filter (types/category/remote_only/since_hours; nilai `unknown` lolos) lalu upsert. Satu keyword gagal tidak menggagalkan sumber; `SourceBlocked` menghentikan keyword berikutnya.
+- Upsert: `updated_at` hanya berubah bila isi job berubah (field volatil seperti `raw`, `fetched_at` diabaikan saat membandingkan), jadi scrape ulang yang sama → `new=0 updated=0`.
+
+Menambah sumber baru = 1 file + import di `scraper/sources/__init__.py` + 1 entri di `config/sources.yaml` + 1 fixture test.
 
 ## 12. Multi-Provider (beberapa repo/scraper untuk satu sumber)
 

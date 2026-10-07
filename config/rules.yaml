@@ -1,0 +1,41 @@
+# Rule-based classification (DESIGN-SYSTEM §6). No LLM.
+# Patterns are Python regexes, matched case-insensitively against title + tags + description.
+# Order matters: the first matching rule wins. Structured data from a source always beats these rules.
+# Title is checked before the description, so "Freelance Video Editor" beats a stray "full-time" in the body.
+
+employment_type:
+  - { value: internship, pattern: '\b(intern(ship)?s?|magang|trainee(ship)?|praktik kerja|pkl)\b' }
+  - { value: freelance,  pattern: '\b(freelance[rs]?|free-lance|lepas|pekerja lepas|self[- ]employed|per project|project[- ]based|gig)\b' }
+  - { value: contract,   pattern: '\b(contract(or|ual)?|kontrak|pkwt|fixed[- ]term|1099)\b' }
+  - { value: temporary,  pattern: '\b(temporary|temp|seasonal|sementara|harian lepas)\b' }
+  - { value: parttime,   pattern: '\b(part[- ]?time|paruh waktu|paruh-waktu)\b' }
+  - { value: fulltime,   pattern: '\b(full[- ]?time|pkwtt|karyawan tetap|permanent)\b' }
+
+work_mode:
+  - { value: hybrid, pattern: '\bhybrid\b' }
+  - { value: remote, pattern: '\b(remote(ly)?|wfh|work from (home|anywhere)|telecommut\w*|distributed team|kerja dari rumah)\b' }
+  - { value: onsite, pattern: '\b(on[- ]?site|in[- ]office|wfo|work from office|di kantor|in[- ]person)\b' }
+
+seniority:
+  - { value: intern, pattern: '\b(intern(ship)?|magang|trainee)\b' }
+  - { value: lead,   pattern: '\b(lead|principal|head of|director|manager|vp|chief|kepala|supervisor)\b' }
+  - { value: senior, pattern: '\b(senior|sr\.?|expert)\b' }
+  - { value: junior, pattern: '\b(junior|jr\.?|entry[- ]level|fresh ?grad(uate)?|lulusan baru|graduate)\b' }
+  - { value: mid,    pattern: '\b(mid[- ]?(level|senior)?|intermediate|associate)\b' }
+
+# Text that marks a posting as a gig (one-off task) rather than a job.
+gig: '\b(gig|one[- ]off|one[- ]time (task|project)|fixed[- ]price|per (task|video|photo|project)|small task)\b|\[(task|hiring)\]'
+
+# Contract/project duration, e.g. "3 months contract", "kontrak 6 bulan", "2-4 week project".
+# A number+unit counts only when a `context` word is within ~40 chars before or after it
+# and no `reject` word follows it ("3 years of experience" is not a duration).
+duration:
+  number_unit: '(\d+(?:[.,]\d+)?)(?:\s*(?:-|–|to|sampai|s/d)\s*(\d+(?:[.,]\d+)?))?\+?\s*(hours?|hrs?|jam|days?|hari|weeks?|wks?|minggu|months?|mos?|bulan|years?|yrs?|tahun)\b'
+  context: '\b(contract|kontrak|duration|durasi|project|proyek|engagement|assignment|selama|period|periode|term|long[- ]term|short[- ]term)\b'
+  reject: '^\W*(\w+\W+){0,2}(of\s+)?(experience|exp|pengalaman|old|usia|ago|lalu|warranty|garansi)\b'
+  units:
+    hour: [hour, hours, hr, hrs, jam]
+    day: [day, days, hari]
+    week: [week, weeks, wk, wks, minggu]
+    month: [month, months, mo, mos, bulan]
+    year: [year, years, yr, yrs, tahun]

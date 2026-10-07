@@ -1,0 +1,119 @@
+# Region hierarchy for "region focus" (DESIGN-SYSTEM §5a).
+# A region lists `countries` (ISO-3166 alpha-2) and/or `children` (other regions).
+# `aliases` are lowercase words that point to the region in free-text locations.
+# Edit freely — no code change needed.
+
+regions:
+  ALL: { label: "All regions" }
+  GLOBAL_REMOTE: { label: "Worldwide remote" }
+  APAC: { label: "Asia Pacific", children: [SEA, EA, SAS, OC], aliases: [apac, asia pacific, asia-pacific, asia] }
+  SEA: { label: "Southeast Asia", countries: [ID, SG, MY, TH, VN, PH, KH, MM, LA, BN], aliases: [sea, southeast asia, south east asia, asean] }
+  EA: { label: "East Asia", countries: [JP, KR, CN, HK, TW, MN], aliases: [east asia] }
+  SAS: { label: "South Asia", countries: [IN, PK, BD, LK, NP], aliases: [south asia] }
+  OC: { label: "Oceania", countries: [AU, NZ], aliases: [oceania, anz] }
+  EU:
+    label: "Europe"
+    countries: [GB, IE, DE, NL, BE, LU, FR, ES, PT, IT, CH, AT, PL, CZ, SK, HU, RO, BG, GR, HR, SI, RS, UA, SE, NO, DK, FI, IS, EE, LV, LT, CY, MT]
+    aliases: [europe, eu, emea, european union, cet, cest, eet, wet]
+  NA: { label: "North America", countries: [US, CA], aliases: [north america, americas] }
+  LATAM: { label: "Latin America", countries: [MX, BR, AR, CO, CL, PE, UY, EC, BO, PY, VE, CR, PA, GT, DO], aliases: [latam, latin america, south america] }
+  MEA: { label: "Middle East & Africa", countries: [AE, SA, QA, KW, BH, OM, IL, TR, EG, MA, TN, NG, GH, KE, ZA, ET, UG, TZ, RW], aliases: [mea, middle east, africa, mena, gcc] }
+
+# Country code → names/aliases (lowercase) used to recognise countries in text.
+# City aliases resolve to the country; the first city listed is not special.
+countries:
+  ID: { name: Indonesia, aliases: [indonesia, jakarta, bandung, surabaya, bali, denpasar, yogyakarta, jogja, jogjakarta, semarang, medan, makassar, malang, bogor, tangerang, bekasi, depok, jabodetabek, batam, palembang, west java, east java, central java, banten] }
+  SG: { name: Singapore, aliases: [singapore] }
+  MY: { name: Malaysia, aliases: [malaysia, kuala lumpur, penang, johor bahru, selangor] }
+  TH: { name: Thailand, aliases: [thailand, bangkok, chiang mai, phuket] }
+  VN: { name: Vietnam, aliases: [vietnam, viet nam, ho chi minh, hanoi, saigon, da nang] }
+  PH: { name: Philippines, aliases: [philippines, manila, cebu, makati, quezon city, taguig] }
+  KH: { name: Cambodia, aliases: [cambodia, phnom penh] }
+  MM: { name: Myanmar, aliases: [myanmar, yangon] }
+  LA: { name: Laos, aliases: [laos] }
+  BN: { name: Brunei, aliases: [brunei] }
+  JP: { name: Japan, aliases: [japan, tokyo, osaka] }
+  KR: { name: South Korea, aliases: [south korea, korea, seoul] }
+  CN: { name: China, aliases: [china, beijing, shanghai, shenzhen] }
+  HK: { name: Hong Kong, aliases: [hong kong] }
+  TW: { name: Taiwan, aliases: [taiwan, taipei] }
+  MN: { name: Mongolia, aliases: [mongolia] }
+  IN: { name: India, aliases: [india, bangalore, bengaluru, mumbai, delhi, new delhi, hyderabad, chennai, pune, kolkata, noida, gurgaon, gurugram] }
+  PK: { name: Pakistan, aliases: [pakistan, karachi, lahore, islamabad] }
+  BD: { name: Bangladesh, aliases: [bangladesh, dhaka] }
+  LK: { name: Sri Lanka, aliases: [sri lanka, colombo] }
+  NP: { name: Nepal, aliases: [nepal, kathmandu] }
+  AU: { name: Australia, aliases: [australia, sydney, melbourne, brisbane, perth, adelaide, canberra] }
+  NZ: { name: New Zealand, aliases: [new zealand, auckland, wellington] }
+  GB: { name: United Kingdom, aliases: [united kingdom, uk, great britain, england, scotland, wales, london, manchester, edinburgh, birmingham] }
+  IE: { name: Ireland, aliases: [ireland, dublin] }
+  DE: { name: Germany, aliases: [germany, deutschland, berlin, munich, münchen, hamburg, frankfurt, cologne, köln] }
+  NL: { name: Netherlands, aliases: [netherlands, the netherlands, holland, amsterdam, rotterdam] }
+  BE: { name: Belgium, aliases: [belgium, brussels] }
+  LU: { name: Luxembourg, aliases: [luxembourg] }
+  FR: { name: France, aliases: [france, paris, lyon] }
+  ES: { name: Spain, aliases: [spain, madrid, barcelona] }
+  PT: { name: Portugal, aliases: [portugal, lisbon, porto] }
+  IT: { name: Italy, aliases: [italy, rome, milan] }
+  CH: { name: Switzerland, aliases: [switzerland, zurich, geneva] }
+  AT: { name: Austria, aliases: [austria, vienna] }
+  PL: { name: Poland, aliases: [poland, warsaw, krakow] }
+  CZ: { name: Czechia, aliases: [czechia, czech republic, prague] }
+  SK: { name: Slovakia, aliases: [slovakia] }
+  HU: { name: Hungary, aliases: [hungary, budapest] }
+  RO: { name: Romania, aliases: [romania, bucharest] }
+  BG: { name: Bulgaria, aliases: [bulgaria, sofia] }
+  GR: { name: Greece, aliases: [greece, athens] }
+  HR: { name: Croatia, aliases: [croatia, zagreb] }
+  SI: { name: Slovenia, aliases: [slovenia] }
+  RS: { name: Serbia, aliases: [serbia, belgrade] }
+  UA: { name: Ukraine, aliases: [ukraine, kyiv, kiev] }
+  SE: { name: Sweden, aliases: [sweden, stockholm] }
+  NO: { name: Norway, aliases: [norway, oslo] }
+  DK: { name: Denmark, aliases: [denmark, copenhagen] }
+  FI: { name: Finland, aliases: [finland, helsinki] }
+  IS: { name: Iceland, aliases: [iceland] }
+  EE: { name: Estonia, aliases: [estonia, tallinn] }
+  LV: { name: Latvia, aliases: [latvia, riga] }
+  LT: { name: Lithuania, aliases: [lithuania, vilnius] }
+  CY: { name: Cyprus, aliases: [cyprus] }
+  MT: { name: Malta, aliases: [malta] }
+  US: { name: United States, aliases: [united states, united states of america, usa, u.s., us only, new york, san francisco, los angeles, chicago, seattle, austin, boston, miami, texas, california, florida] }
+  CA: { name: Canada, aliases: [canada, toronto, vancouver, montreal] }
+  MX: { name: Mexico, aliases: [mexico, mexico city] }
+  BR: { name: Brazil, aliases: [brazil, brasil, são paulo, sao paulo, rio de janeiro] }
+  AR: { name: Argentina, aliases: [argentina, buenos aires] }
+  CO: { name: Colombia, aliases: [colombia, bogota, bogotá, medellin] }
+  CL: { name: Chile, aliases: [chile, santiago] }
+  PE: { name: Peru, aliases: [peru, lima] }
+  UY: { name: Uruguay, aliases: [uruguay, montevideo] }
+  EC: { name: Ecuador, aliases: [ecuador] }
+  BO: { name: Bolivia, aliases: [bolivia] }
+  PY: { name: Paraguay, aliases: [paraguay] }
+  VE: { name: Venezuela, aliases: [venezuela] }
+  CR: { name: Costa Rica, aliases: [costa rica] }
+  PA: { name: Panama, aliases: [panama] }
+  GT: { name: Guatemala, aliases: [guatemala] }
+  DO: { name: Dominican Republic, aliases: [dominican republic] }
+  AE: { name: United Arab Emirates, aliases: [united arab emirates, uae, dubai, abu dhabi] }
+  SA: { name: Saudi Arabia, aliases: [saudi arabia, ksa, riyadh, jeddah] }
+  QA: { name: Qatar, aliases: [qatar, doha] }
+  KW: { name: Kuwait, aliases: [kuwait] }
+  BH: { name: Bahrain, aliases: [bahrain] }
+  OM: { name: Oman, aliases: [oman] }
+  IL: { name: Israel, aliases: [israel, tel aviv] }
+  TR: { name: Turkey, aliases: [turkey, türkiye, turkiye, istanbul] }
+  EG: { name: Egypt, aliases: [egypt, cairo] }
+  MA: { name: Morocco, aliases: [morocco] }
+  TN: { name: Tunisia, aliases: [tunisia] }
+  NG: { name: Nigeria, aliases: [nigeria, lagos] }
+  GH: { name: Ghana, aliases: [ghana, accra] }
+  KE: { name: Kenya, aliases: [kenya, nairobi] }
+  ZA: { name: South Africa, aliases: [south africa, cape town, johannesburg] }
+  ET: { name: Ethiopia, aliases: [ethiopia] }
+  UG: { name: Uganda, aliases: [uganda] }
+  TZ: { name: Tanzania, aliases: [tanzania] }
+  RW: { name: Rwanda, aliases: [rwanda] }
+
+# Words that mean "remote, anywhere".
+worldwide_aliases: [worldwide, anywhere, global, globally, world, international, any location, anywhere in the world]
