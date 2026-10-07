@@ -13,18 +13,23 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 
 ## Status Saat Ini
 
-- **Fase:** **M5 selesai** (2026-10-07). Berikutnya **M6** (Schedules: internal scheduler, Windows task scheduler, schedules.json).
+- **Fase:** **M5 + User Enhancements selesai** (2026-10-07). Berikutnya **M6** (Schedules: internal scheduler, Windows task scheduler, schedules.json).
 - **Kode M1:** `storage/filestore.py`, `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`.
 - **Kode M2:** `storage/index.py` (`JobIndex`: load JSONL → doc ringan, reload otomatis by mtime/size tiap ≤1 dtk, `group_duplicates`, search AND/`-exclude`/`"frasa"`/`prefix*`, plural sederhana, alias skill dari `skills.yaml`, skor title×3 skills×2 company×2 desc×1 + bonus kebaruan; filter region/type/mode/source/country/seniority/currency/salary_min/has_salary/posted_within/duration_max; facet disjunktif; sort relevance/newest/salary_desc/company). API: `/api/jobs`, `/api/jobs/{id}`, `/api/facets`, `/api/regions` (tree + count), `/api/sources` (+ jumlah job, last_fetched). Frontend: `hooks/useUrlState.ts` (semua state di URL, region juga di localStorage), `hooks/useApi.ts`, `lib/format.ts`, `components/{RegionSelect,FilterSidebar,Results}.tsx`, `App.tsx` (header, sidebar, chips, sort, tabel ≥768px, kartu mobile, bottom sheet filter <1024px, pagination, state kosong/error, `/` fokus search).
 - **Kode M3:** `app/routes/scrape.py`: `POST /api/scrape` (202 + `run_id`, run ditulis `queued` dulu lalu `run_scrape` jalan sebagai asyncio task), `GET /api/runs`, `GET /api/runs/{id}`, `GET /api/scrape/sources?region=&category=` (sumber + `in_region`/`selected` + presets). `run_scrape` menerima `run_id` + `sources`. `FileStore.get_job/load_run` menolak id yang bukan nama file aman. Frontend: `components/JobDrawer.tsx` (Overview / Description dengan DOMPurify + highlight / Raw JSON tree + cari + Copy/Download + toggle normalized; `↑↓`/`j k`, `o`, `Esc`, klik luar, Copy link), `components/ScrapeModal.tsx` (keyword chip, region, lokasi, kategori, tipe, remote, since, max, sumber auto per region + label "not in region", preset, progress per sumber), `hooks/useScrapeRun.ts` (polling 1 dtk, id run di localStorage agar lanjut setelah reload), `lib/highlight.ts`. `?job=<id>` di URL, `j/k` + `Enter` di daftar, `Shift+S`, indikator header `⟳ 1/2`, toast "N new jobs · View", tombol scrape di state kosong / tanpa hasil.
 - **Kode M4:** connector **Reddit Gigs** (`scraper/sources/reddit.py`: Atom RSS multi-subreddit r/forhire, r/slavelabour, r/PhotoshopRequest, r/VideoEditingRequests, filter [Hiring]/[Task] vs [For Hire]/[Offer]), connector **Hacker News Freelancer** (`scraper/sources/hackernews.py`: Algolia API query "SEEKING FREELANCER", parser pipe company/role/remote), budget extraction untuk gig di `classify.py` & connector (fixed vs hourly), preset baru `gigs` di `config/sources.yaml`.
 - **Kode M5:** connector **JobSpy** (`scraper/sources/jobspy.py`: Indeed, Glassdoor, ZipRecruiter, LinkedIn via python-jobspy 1.2.0), connector **Kalibrr ID & SEA** (`scraper/sources/kalibrr.py`: REST search API publik), connector **Telegram Job Channels** (`scraper/sources/telegram.py`: preview web HTML publik `@loker_id`, `@idrecruitments`), preset `indonesia` diperbarui (`jobstreet, kalibrr, telegram, jobspy`).
-- **Tes:** 65 lulus (`tests/test_sources.py` mencakup seluruh 8 sumber). `npm run build` ok.
-- **Terverifikasi nyata (M5):** Live scrape CLI terverifikasi untuk Kalibrr (`videografer` -> 3 job baru), Telegram (`@loker_id` -> 3 job baru), JobSpy Indeed ID (`videografer` -> teruji via python guest request).
+- **Fitur Tambahan (Error Handling, Logs, Scan Filter, Keep/Remove):**
+  - **Anti Silent Error:** `jobspy.py`, `reddit.py`, `telegram.py` tidak swallow error kosong; runner menaikkan `SourceBlocked`/`SourceError`, status run akurat (`failed`/`partial`/`done`).
+  - **Granular Scrape Logs:** `SourceRunResult.logs` berisi trace query/fetch/warning/error/stats; UI modal menampilkan viewer log collapsible per sumber.
+  - **Scan History Filter (`scan_run_id`):** `Job` & `JobSummary` menyimpan `scan_run_id`. Index dan API memfilter berdasarkan run ID atau rentang waktu run. Sidebar memiliki dropdown riwayat jam scrape (`HH:mm DD/MM` + jumlah new/fetched).
+  - **Keep (★) & Remove (✕) Tagging:** `user_status` ("keep" | "removed" | null) disimpan persisten di `jobs/<source>.jsonl`. `upsert_jobs` tidak mereset status saat re-scrape. Endpoint `POST /api/jobs/{id}/status`. Action buttons di tabel, kartu, drawer. Filter status di sidebar (Active, Kept ★, Removed ✕, All).
+- **Tes:** 66 lulus (termasuk tes runner logs, anti silent error, scan filter, user status persistence & API). `npm run build` ok.
+- **Terverifikasi nyata:** Live scrape CLI terverifikasi untuk Kalibrr, Telegram, JobSpy Indeed ID, Hacker News, Freelancer, JobStreet.
 - **Git:** branch `main`.
 - **Mode provider:** fallback (D15).
 - **Next step (M6):** Schedules (`schedules.json`, scheduler internal APScheduler di backend, CLI `fjg schedule run-due`, script Task Scheduler Windows, UI konfigurasi jadwal di modal/panel).
-- **Ditunda:** "Save as schedule" di Scrape modal (M6), tombol Retry per sumber, panel Runs (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
+- **Ditunda:** "Save as schedule" di Scrape modal (M6), tombol Retry per sumber, panel Runs lengkap (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
 
 ## Cara Menjalankan
 
@@ -65,6 +70,10 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 | D17 | `duplicates` dihitung saat baca (index), tidak ditulis ke file; job tanpa company tidak di-dedup lintas sumber | Selalu konsisten; judul gig saja terlalu sering bentrok |
 | D18 | Salary tebakan dari **deskripsi** hanya diterima bila ada periode (/hr, per month, …); dari **judul** selalu diterima | Deskripsi penuh angka pendanaan/harga ("US$218M") |
 | D19 | Pencarian: kata di-AND, `-x` exclude, `"frasa"`, `x*` prefix; plural sederhana (editor↔editors), tanpa stemming lain | Prediktabel; `react` tidak ikut cocok `reactive` |
+| D20 | Silent error dilarang; semua connector wajib me-raise `SourceBlocked`/`SourceError`; runner menandai status run sebagai `failed` jika seluruh sumber error, `partial` jika sebagian error | User (2026-10-07); mencegah scraper diam-diam gagal mengembalikan 0 hasil tanpa notifikasi |
+| D21 | Tagging `user_status` ("keep" / "removed") disimpan persisten di file JSONL masing-masing sumber; dilindungi dalam `upsert_jobs` agar tidak hilang saat scrape ulang | User (2026-10-07); memfasilitasi bookmark/simpan & hapus lowongan yang tahan refresh & re-scrape |
+| D22 | Filter scan history (`scan_run_id`) mengikat ID run dan fallback ke rentang waktu `started_at` - `finished_at` run | User (2026-10-07); memungkinkan user memfilter lowongan dari jam scan tertentu |
+
 
 ## Gotchas
 
