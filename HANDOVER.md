@@ -13,7 +13,7 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 
 ## Status Saat Ini
 
-- **Fase:** **M6 selesai** (2026-10-07). Berikutnya **M7** (lihat PLANNING.md: kolom tabel bisa diatur, export, dll).
+- **Fase:** **M6 selesai** (2026-10-07). Berikutnya **M7 Polish** (rincian di Next step di bawah). Commit M6: `62ad1be`.
 - **Kode M1:** `storage/filestore.py`, `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`.
 - **Kode M2:** `storage/index.py` (`JobIndex`: load JSONL → doc ringan, reload otomatis by mtime/size tiap ≤1 dtk, `group_duplicates`, search AND/`-exclude`/`"frasa"`/`prefix*`, plural sederhana, alias skill dari `skills.yaml`, skor title×3 skills×2 company×2 desc×1 + bonus kebaruan; filter region/type/mode/source/country/seniority/currency/salary_min/has_salary/posted_within/duration_max; facet disjunktif; sort relevance/newest/salary_desc/company). API: `/api/jobs`, `/api/jobs/{id}`, `/api/facets`, `/api/regions` (tree + count), `/api/sources` (+ jumlah job, last_fetched). Frontend: `hooks/useUrlState.ts` (semua state di URL, region juga di localStorage), `hooks/useApi.ts`, `lib/format.ts`, `components/{RegionSelect,FilterSidebar,Results}.tsx`, `App.tsx` (header, sidebar, chips, sort, tabel ≥768px, kartu mobile, bottom sheet filter <1024px, pagination, state kosong/error, `/` fokus search).
 - **Kode M3:** `app/routes/scrape.py`: `POST /api/scrape` (202 + `run_id`, run ditulis `queued` dulu lalu `run_scrape` jalan sebagai asyncio task), `GET /api/runs`, `GET /api/runs/{id}`, `GET /api/scrape/sources?region=&category=` (sumber + `in_region`/`selected` + presets). `run_scrape` menerima `run_id` + `sources`. `FileStore.get_job/load_run` menolak id yang bukan nama file aman. Frontend: `components/JobDrawer.tsx` (Overview / Description dengan DOMPurify + highlight / Raw JSON tree + cari + Copy/Download + toggle normalized; `↑↓`/`j k`, `o`, `Esc`, klik luar, Copy link), `components/ScrapeModal.tsx` (keyword chip, region, lokasi, kategori, tipe, remote, since, max, sumber auto per region + label "not in region", preset, progress per sumber), `hooks/useScrapeRun.ts` (polling 1 dtk, id run di localStorage agar lanjut setelah reload), `lib/highlight.ts`. `?job=<id>` di URL, `j/k` + `Enter` di daftar, `Shift+S`, indikator header `⟳ 1/2`, toast "N new jobs · View", tombol scrape di state kosong / tanpa hasil.
@@ -29,7 +29,14 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 - **Terverifikasi nyata:** Live scrape CLI terverifikasi untuk Kalibrr, Telegram, JobSpy Indeed ID, Hacker News, Freelancer, JobStreet.
 - **Git:** branch `main`.
 - **Mode provider:** fallback (D15).
-- **Next step (M7):** lihat PLANNING.md. Belum diverifikasi: `register-task.ps1` di Windows nyata dan UI panel di browser.
+- **Next step (M7 Polish, PLANNING §6):** kerjakan berurutan, commit per bagian (tanpa co-author), update HANDOVER tiap selesai:
+  1. **Verifikasi M6 dulu** (belum pernah dicoba nyata): `npm start`, buka panel ⏱ Schedules, buat jadwal lewat "Save as schedule", klik Run now, pause/resume; jalankan `powershell -ExecutionPolicy Bypass -File scriptsegister-task.ps1` lalu `npm run fjg -- schedule status` (harus `registered`). Perbaiki bila ada bug.
+  2. **Export CSV/JSON:** `GET /api/export?format=csv|json&<filter sama dengan /api/jobs>` (DESIGN-SYSTEM §8, belum ada) + tombol di UI.
+  3. **Kolom tabel bisa diatur** (tampil/sembunyi, urutan; simpan di localStorage). Di sinilah TanStack Table baru layak dipakai.
+  4. **Dark mode manual toggle:** sekarang hanya `prefers-color-scheme` di `index.css`; tambah toggle + `data-theme`.
+  5. **Retensi data:** arsip/hapus raw & run lama (`data/archive/`), mis. `fjg prune --days N`.
+  6. Sisa shortcut keyboard (yang ada: `/`, `j/k`, `Enter`, `o`, `Esc`, `Shift+S`). Bookmark sudah ada (Keep ★).
+  - Belum diverifikasi: UI panel Schedules di browser dan `register-task.ps1` di Windows nyata.
 - **Ditunda:** edit penuh query jadwal di panel (sekarang hanya nama/interval/pause/hapus; ubah query = hapus + buat ulang), cron expression, tombol Retry per sumber, panel Runs lengkap (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
 
 ## Cara Menjalankan
