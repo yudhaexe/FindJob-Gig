@@ -36,7 +36,7 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
   4. **Dark mode manual toggle:** sekarang hanya `prefers-color-scheme` di `index.css`; tambah toggle + `data-theme`.
   5. **Retensi data:** arsip/hapus raw & run lama (`data/archive/`), mis. `fjg prune --days N`.
   6. Sisa shortcut keyboard (yang ada: `/`, `j/k`, `Enter`, `o`, `Esc`, `Shift+S`). Bookmark sudah ada (Keep ★).
-  - Belum diverifikasi: UI panel Schedules di browser dan `register-task.ps1` di Windows nyata.
+  - Terverifikasi (2026-10-07): `register-task.ps1` → `schedule status` = `registered`, Start-ScheduledTask hasil 0, 70 tes lulus. **Belum:** UI panel Schedules di browser (Save as schedule, Run now, pause/resume).
 - **Ditunda:** edit penuh query jadwal di panel (sekarang hanya nama/interval/pause/hapus; ubah query = hapus + buat ulang), cron expression, tombol Retry per sumber, panel Runs lengkap (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
 
 ## Cara Menjalankan
@@ -130,3 +130,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M5 selesai**: Connector JobSpy (Indeed, Glassdoor, ZipRecruiter, LinkedIn via python-jobspy 1.2.0), connector Kalibrr (ID & SEA REST), connector Telegram Job Channels (HTML preview @loker_id, @idrecruitments). 65 test lulus, live scrape terverifikasi. | User request: silent errors, scan history filter, logs, keep/remove tagging |
 | 2026-10-07 | **Fitur Tambahan (Error Handling, Logs, Scan History, Keep & Remove)**: (1) Anti silent error & auto fail/partial run status, (2) Granular execution logs per source di runner + UI expandable log viewer di progress modal, (3) Scan history & time filter (`scan_run_id`) di API, Index, dan sidebar dropdown, (4) Persistent Keep (★) & Remove (✕) tagging di JSONL, endpoint status, table/card/drawer actions, dan sidebar filter. 66 test lulus, build clean. | M6 |
 | 2026-10-07 | **M6 selesai**: schedules.json + scheduler (claim, pause 3 gagal), API, CLI `fjg schedule`, `register-task.ps1`, Schedules panel + Save as schedule + badge header. 70 test lulus, build clean, CLI smoke OK. | M7; verifikasi Task Scheduler & UI di browser |
+| 2026-10-07 | **M7 butir 1 (sebagian)**: verifikasi M6 — 70 tes lulus, `register-task.ps1` jalan, task `FindJobGig` terdaftar & sukses dijalankan manual (hasil 0), `schedule status` = registered. Fix typo path di HANDOVER. | Verifikasi UI Schedules di browser, lalu M7 butir 2 (Export CSV/JSON) |
