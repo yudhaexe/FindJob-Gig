@@ -15,6 +15,11 @@ export const QUERY_DEFAULTS: ScrapeQuery = {
   remote_only: false, since_hours: 72, max_per_source: 100,
 };
 
+const localISO = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** Hours from 00:00 (local) of `date` until now, at least 1. */
+const hoursSince = (date: string) => Math.max(1, Math.ceil((Date.now() - new Date(`${date}T00:00:00`).getTime()) / 36e5));
+
 interface Props {
   initial: Partial<ScrapeQuery>;
   regions: RegionsResponse | null;
@@ -29,6 +34,9 @@ interface Props {
 export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClose, onViewResults, onScheduleSaved }: Props) {
   const [q, setQ] = useState<ScrapeQuery>(() => ({ ...QUERY_DEFAULTS, ...initial }));
   const [draft, setDraft] = useState("");
+  // The date picker is the input; the backend still receives a rolling window in hours.
+  const [sinceDate, setSinceDate] = useState(() =>
+    q.since_hours ? localISO(new Date(Date.now() - q.since_hours * 36e5)) : "");
   const [sources, setSources] = useState<ScrapeSource[] | null>(null);
   const [presets, setPresets] = useState<ScrapePreset[]>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set(initial.sources ?? []));
@@ -277,16 +285,25 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
                 <input type="checkbox" checked={q.remote_only} onChange={(e) => set({ remote_only: e.target.checked })} />
                 Remote only
               </label>
-              <label className="flex items-center gap-1.5" title="Only keep postings from the last N hours (0 = any age)">
-                Since
+              <label className="flex items-center gap-1.5" title="Only keep postings published on or after this date">
+                Posted since
                 <input
-                  type="number"
-                  min={0}
-                  value={q.since_hours}
-                  onChange={(e) => set({ since_hours: Math.max(0, Number(e.target.value) || 0) })}
-                  className={`${field} w-20 tabular-nums`}
+                  type="date"
+                  value={sinceDate}
+                  max={localISO(new Date())}
+                  onChange={(e) => {
+                    setSinceDate(e.target.value);
+                    set({ since_hours: e.target.value ? hoursSince(e.target.value) : 0 });
+                  }}
+                  className={`${field} tabular-nums`}
                 />
-                hours
+                {sinceDate ? (
+                  <button type="button" onClick={() => { setSinceDate(""); set({ since_hours: 0 }); }} className="text-xs text-accent hover:underline">
+                    Any date
+                  </button>
+                ) : (
+                  <span className="text-xs text-muted">any date</span>
+                )}
               </label>
               <label className="flex items-center gap-1.5" title="Max items per source for each keyword">
                 Max per source
@@ -341,6 +358,9 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={asSchedule} onChange={(e) => setAsSchedule(e.target.checked)} />
               Save as schedule
+              {asSchedule && q.since_hours > 0 && (
+                <span className="text-xs text-muted">(each run looks back {q.since_hours}h, not a fixed date)</span>
+              )}
             </label>
             {asSchedule && (
               <>
