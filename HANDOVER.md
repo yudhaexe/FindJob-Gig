@@ -20,7 +20,7 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 - **Tes:** 56 lulus (`tests/test_scrape_api.py` baru). `npm run build` ok.
 - **Terverifikasi nyata (M3, browser):** drawer + 3 tab, highlight "video editor", j/k/Enter/↓/Esc, scrape dari modal (Himalayas 5 fetched), run di background → header `⟳ 0/2 → 1/2` → toast "4 new jobs", lanjut setelah reload. Drawer mobile (layar penuh) belum dicek visual.
 - **Terverifikasi nyata (M2):** scrape preset creative → 226 job. Di browser: search "video editor" → 42 hasil, facet benar, region Indonesia → 23 (onsite ID + remote worldwide), filter IDR ≥ 10M via API ok. Tampilan mobile belum dicek visual (tool screenshot gagal saat resize).
-- **Git:** branch `main`, commit M2 = `7edc580`, M3 lihat `git log`.
+- **Git:** branch `main`, commit M2 = `7edc580`, M3 = `dba3809` (lihat `git log`).
 - **Mode provider:** fallback (D15).
 - **Next step (M4):** connector Reddit (OAuth atau RSS + jeda ≥15 dtk), HN "Who is hiring / freelancer", parsing budget & durasi gig; filter "Gigs" berisi data nyata dari >1 sumber.
 - **Ditunda:** "Save as schedule" di Scrape modal (M6), tombol Retry per sumber, panel Runs (riwayat), next/prev lintas halaman di drawer, TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
@@ -106,4 +106,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1. User setuju fallback (D15). Commit `8d64998` | M1 |
 | 2026-10-07 | **M1 selesai**: FileStore, runner, classify (rules/skills/topics yaml), money, regions, dedup, 3 connector (Freelancer, JobStreet, Himalayas), `fjg scrape`/`sources`. 46 test. Scrape nyata preset creative OK & idempoten. Commit `fcc8e62` | M2 |
 | 2026-10-07 | **M2 selesai**: JobIndex + API jobs/facets/regions/sources, UI tabel + search + filter sidebar + region selector + chips + paging, state di URL. Fix `NO` di regions.yaml. 53 test. Commit `7edc580` | M3 |
-| 2026-10-07 | **M3 selesai**: API scrape/runs/scrape-sources, Job drawer (Overview/Description/Raw JSON), Scrape modal + progress + indikator header + toast, keyboard j/k/Enter/Shift+S. Dependensi baru: `dompurify`. 56 test. Diverifikasi di browser | M4 |
+| 2026-10-07 | **M3 selesai**: API scrape/runs/scrape-sources, Job drawer (Overview/Description/Raw JSON), Scrape modal + progress + indikator header + toast, keyboard j/k/Enter/Shift+S. Dependensi baru: `dompurify`. 56 test. Diverifikasi di browser. Commit `dba3809` | M4 |
