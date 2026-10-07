@@ -25,14 +25,25 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* Dark follows the OS unless the user picked a theme (data-theme on <html>, set by lib/theme.ts). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #0b0b0d;
     --surface: #151518;
     --border: #27272a;
     --text: #f4f4f5;
     --text-muted: #a1a1aa;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0b0d;
+  --surface: #151518;
+  --border: #27272a;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
 }
 
 @theme inline {

@@ -11,6 +11,7 @@ import { ScrapeModal } from "./components/ScrapeModal";
 import { useDebounced, useJobs, useRegions, useSources } from "./hooks/useApi";
 import { isActive, runProgress, useScrapeRun } from "./hooks/useScrapeRun";
 import { DEFAULTS, activeFilterCount, toApiParams, useUrlState, type SearchState } from "./hooks/useUrlState";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { api, exportUrl } from "./lib/api";
 import { relTime } from "./lib/format";
 import type { Run, Schedule, ScrapeQuery } from "./lib/types";
@@ -428,6 +429,7 @@ function Header({
           Updated {updated} ago
         </span>
       )}
+      <ThemeToggle />
       <button
         type="button"
         onClick={onSchedules}

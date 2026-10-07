@@ -34,7 +34,7 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 egister-task.ps1` lalu `npm run fjg -- schedule status` (harus `registered`). Perbaiki bila ada bug.
   2. ~~**Export CSV/JSON**~~ selesai: `GET /api/export?format=csv|json&<filter /api/jobs>` (semua hasil, tanpa paging; CSV pakai BOM utk Excel) + tombol CSV/JSON di toolbar hasil (`exportUrl` di `lib/api.ts`).
   3. ~~**Kolom tabel bisa diatur**~~ selesai: `COLUMNS` di `Results.tsx` (title wajib; opsional location/source/posted/seniority), menu `ColumnMenu.tsx` (tampil/sembunyi, ↑↓ urutan, reset; localStorage `fjg.columns`). Tanpa TanStack Table (tabel native cukup).
-  4. **Dark mode manual toggle:** sekarang hanya `prefers-color-scheme` di `index.css`; tambah toggle + `data-theme`.
+  4. ~~**Dark mode manual toggle**~~ selesai: `ThemeToggle.tsx` (system → light → dark, localStorage `fjg.theme`, `data-theme` di `<html>`, skrip kecil di `index.html` mencegah flash), CSS di `index.css`.
   5. **Retensi data:** arsip/hapus raw & run lama (`data/archive/`), mis. `fjg prune --days N`.
   6. Sisa shortcut keyboard (yang ada: `/`, `j/k`, `Enter`, `o`, `Esc`, `Shift+S`). Bookmark sudah ada (Keep ★).
   - Terverifikasi (2026-10-07): `register-task.ps1` → `schedule status` = `registered`, Start-ScheduledTask hasil 0, 70 tes lulus. **Belum:** UI panel Schedules di browser (Save as schedule, Run now, pause/resume).
@@ -134,3 +134,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M7 butir 1 (sebagian)**: verifikasi M6 — 70 tes lulus, `register-task.ps1` jalan, task `FindJobGig` terdaftar & sukses dijalankan manual (hasil 0), `schedule status` = registered. Fix typo path di HANDOVER. | Verifikasi UI Schedules di browser, lalu M7 butir 2 (Export CSV/JSON) |
 | 2026-10-07 | **M7 butir 2**: Export CSV/JSON (`/api/export` + tombol toolbar), 70 tes lulus (tes API diperluas), build ok. | Verifikasi UI Schedules di browser, M7 butir 3 (kolom tabel) |
 | 2026-10-07 | **M7 butir 3**: kolom tabel bisa diatur (ColumnMenu), typecheck + build ok. Belum dicek visual di browser. | Butir 4 dark mode toggle |
+| 2026-10-07 | **M7 butir 4**: toggle tema manual, typecheck + build ok (belum dicek visual) | Butir 5 retensi data (`fjg prune`) |
