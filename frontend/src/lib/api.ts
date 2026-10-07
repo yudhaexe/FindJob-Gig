@@ -36,11 +36,14 @@ export const api = {
   health: () => get<Health>("/api/health"),
   jobs: (params: Params, signal?: AbortSignal) => get<JobsPage>("/api/jobs", params, signal),
   job: (id: string, signal?: AbortSignal) => get<Job>(`/api/jobs/${encodeURIComponent(id)}`, undefined, signal),
+  updateJobStatus: (id: string, status: "keep" | "removed" | null) =>
+    post<Job>(`/api/jobs/${encodeURIComponent(id)}/status`, { status }),
   regions: (params: { include_worldwide: boolean; hide_unclear: boolean }, signal?: AbortSignal) =>
     get<RegionsResponse>("/api/regions", params, signal),
   sources: () => get<SourcesResponse>("/api/sources"),
   scrapeSources: (params: { region: string; category: string }, signal?: AbortSignal) =>
     get<ScrapeSourcesResponse>("/api/scrape/sources", params, signal),
   startScrape: (q: ScrapeQuery) => post<{ run_id: string }>("/api/scrape", q),
+  runs: (limit = 30) => get<Run[]>("/api/runs", { limit }),
   run: (id: string) => get<Run>(`/api/runs/${encodeURIComponent(id)}`),
 };

@@ -79,16 +79,18 @@ class Reddit(Source):
         items: list[dict[str, Any]] = []
         kw_lower = keyword.lower() if keyword else None
 
+        errors: list[str] = []
         for sub in self.subreddits:
             if len(items) >= limit:
                 break
             url = f"https://www.reddit.com/r/{sub}.rss"
             try:
                 resp = await http.get(url, headers=self.headers())
-            except SourceBlocked:
-                # If rate limited or blocked on one subreddit, don't crash whole run
+            except SourceBlocked as e:
+                errors.append(f"r/{sub} blocked: {e}")
                 continue
-            except SourceError:
+            except SourceError as e:
+                errors.append(f"r/{sub} error: {e}")
                 continue
 
             entries = self._parse_rss(resp.text, sub)
@@ -102,6 +104,8 @@ class Reddit(Source):
                         continue
                 items.append(entry)
 
+        if errors and not items:
+            raise SourceError("; ".join(errors))
         return items[:limit]
 
     def _parse_rss(self, xml_text: str, subreddit: str) -> list[dict[str, Any]]:

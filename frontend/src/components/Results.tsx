@@ -94,6 +94,7 @@ export interface RowProps {
   openId: string;
   cursor: number;
   onOpen: (id: string) => void;
+  onUpdateStatus?: (id: string, status: "keep" | "removed" | null) => void;
 }
 
 const rowState = (j: JobSummary, i: number, openId: string, cursor: number) =>
@@ -109,19 +110,21 @@ function Skills({ job }: { job: JobSummary }) {
   );
 }
 
-export function ResultsTable({ items, labels, openId, cursor, onOpen }: RowProps) {
+export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateStatus }: RowProps) {
   return (
     <table className="w-full table-fixed border-collapse text-sm">
       <colgroup>
-        <col className="w-[34%]" />
+        <col className="w-[52px]" />
+        <col className="w-[32%]" />
         <col className="w-[16%]" />
-        <col className="w-[15%]" />
+        <col className="w-[14%]" />
         <col className="w-[9%]" />
         <col className="w-[7%]" />
-        <col className="w-[19%]" />
+        <col className="w-[20%]" />
       </colgroup>
       <thead className="sticky top-0 z-10 bg-bg text-left text-xs text-muted">
         <tr className="border-b border-border">
+          <th className="px-1 py-2 text-center font-medium">Tag</th>
           <th className="px-3 py-2 font-medium">Title</th>
           <th className="px-3 py-2 font-medium">Company</th>
           <th className="px-3 py-2 font-medium">Salary / Budget</th>
@@ -139,6 +142,30 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen }: RowProps
             onClick={(e) => !(e.target as Element).closest("a, button") && onOpen(j.id)}
             className={`h-[var(--row-h)] cursor-pointer border-b border-border align-top hover:bg-surface ${rowState(j, i, openId, cursor)}`}
           >
+            <td className="px-1 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-center gap-1 pt-0.5">
+                <button
+                  type="button"
+                  title={j.user_status === "keep" ? "Remove keep tag" : "Keep (Save) this job"}
+                  onClick={() => onUpdateStatus?.(j.id, j.user_status === "keep" ? null : "keep")}
+                  className={`text-base leading-none transition-transform active:scale-125 ${
+                    j.user_status === "keep" ? "text-amber-500 hover:text-amber-600" : "text-muted/40 hover:text-amber-500"
+                  }`}
+                >
+                  ★
+                </button>
+                <button
+                  type="button"
+                  title={j.user_status === "removed" ? "Restore removed job" : "Remove / Hide this job"}
+                  onClick={() => onUpdateStatus?.(j.id, j.user_status === "removed" ? null : "removed")}
+                  className={`text-xs leading-none transition-colors ${
+                    j.user_status === "removed" ? "font-bold text-accent" : "text-muted/40 hover:text-danger"
+                  }`}
+                >
+                  {j.user_status === "removed" ? "↺" : "✕"}
+                </button>
+              </div>
+            </td>
             <td className="px-3 py-2">
               <div className="flex flex-col">
                 <span className="truncate">
@@ -178,7 +205,7 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen }: RowProps
   );
 }
 
-export function ResultsCards({ items, labels, openId, cursor, onOpen }: RowProps) {
+export function ResultsCards({ items, labels, openId, cursor, onOpen, onUpdateStatus }: RowProps) {
   return (
     <ul className="divide-y divide-border">
       {items.map((j, i) => (
@@ -188,8 +215,30 @@ export function ResultsCards({ items, labels, openId, cursor, onOpen }: RowProps
           onClick={(e) => !(e.target as Element).closest("a, button") && onOpen(j.id)}
           className={`cursor-pointer space-y-1 px-4 py-3 ${rowState(j, i, openId, cursor)}`}
         >
-          <div className="leading-snug">
+          <div className="flex items-start justify-between gap-2 leading-snug">
             <Title job={j} onOpen={onOpen} />
+            <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                title={j.user_status === "keep" ? "Remove keep tag" : "Keep (Save) this job"}
+                onClick={() => onUpdateStatus?.(j.id, j.user_status === "keep" ? null : "keep")}
+                className={`text-lg leading-none ${
+                  j.user_status === "keep" ? "text-amber-500" : "text-muted hover:text-amber-500"
+                }`}
+              >
+                ★
+              </button>
+              <button
+                type="button"
+                title={j.user_status === "removed" ? "Restore removed job" : "Remove / Hide this job"}
+                onClick={() => onUpdateStatus?.(j.id, j.user_status === "removed" ? null : "removed")}
+                className={`text-xs ${
+                  j.user_status === "removed" ? "font-bold text-accent" : "text-muted hover:text-danger"
+                }`}
+              >
+                {j.user_status === "removed" ? "↺ Restore" : "✕"}
+              </button>
+            </div>
           </div>
           {j.company && <div className="text-muted">{j.company}</div>}
           {money(j.salary, j.budget) && (
@@ -259,6 +308,10 @@ export function activeChips(s: SearchState, labels: Labels): Chip[] {
   list("country", labels.country);
   list("source", labels.source);
   list("seniority", (v) => SENIORITY_LABEL[v] ?? v);
+  if (s.user_status === "keep") chips.push({ key: "st_keep", label: "Status: ★ Kept", clear: { user_status: "" } });
+  else if (s.user_status === "removed") chips.push({ key: "st_rem", label: "Status: ✕ Removed", clear: { user_status: "" } });
+  else if (s.user_status === "all") chips.push({ key: "st_all", label: "Status: All", clear: { user_status: "" } });
+  if (s.scan_run_id) chips.push({ key: "scan_run", label: `Scan run: ${s.scan_run_id.slice(0, 16)}`, clear: { scan_run_id: "" } });
   if (s.posted_within) chips.push({ key: "posted", label: `Posted ≤ ${Number(s.posted_within) >= 48 ? `${Number(s.posted_within) / 24}d` : `${s.posted_within}h`}`, clear: { posted_within: "" } });
   if (s.currency) chips.push({ key: "cur", label: s.currency, clear: { currency: "", salary_min: "", sort: s.sort === "salary_desc" ? "" : s.sort } });
   if (s.currency && s.salary_min) chips.push({ key: "min", label: `≥ ${s.currency} ${Number(s.salary_min).toLocaleString("en-US")}`, clear: { salary_min: "" } });

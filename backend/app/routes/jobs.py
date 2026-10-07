@@ -1,8 +1,9 @@
 """Jobs API (DESIGN-SYSTEM §8): list with filters/sort/paging/facets, detail, regions, sources."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from core import config
 from core.models import Job, JobsPage
@@ -12,6 +13,10 @@ from storage.index import SORTS, Filters, JobIndex, default_index
 router = APIRouter(tags=["jobs"])
 
 IndexDep = Annotated[JobIndex, Depends(default_index)]
+
+
+class JobStatusUpdate(BaseModel):
+    status: Literal["keep", "removed"] | None = None
 
 
 def _csv(value: str | None) -> list[str]:
@@ -35,6 +40,8 @@ def filters(
     has_salary: bool = False,
     posted_within: int | None = Query(None, ge=1, description="Hours"),
     duration_max: float | None = Query(None, gt=0, description="Days"),
+    scan_run_id: str | None = Query(None, description="Filter by scrape run ID"),
+    user_status: str | None = Query(None, description="'keep', 'removed', 'all', or None for active"),
 ) -> Filters:
     return Filters(
         q=q, region=region.upper(), include_worldwide=include_worldwide, hide_unclear=hide_unclear,
@@ -42,6 +49,7 @@ def filters(
         country=[c.upper() for c in _csv(country)], seniority=_csv(seniority),
         currency=[c.upper() for c in _csv(currency)], salary_min=salary_min, salary_period=salary_period,
         has_salary=has_salary, posted_within=posted_within, duration_max=duration_max,
+        scan_run_id=scan_run_id, user_status=user_status,
     )
 
 
@@ -71,6 +79,16 @@ def get_job(job_id: str, index: IndexDep) -> Job:
     job = index.get(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    return job
+
+
+@router.post("/jobs/{job_id}/status", response_model=Job)
+@router.patch("/jobs/{job_id}/status", response_model=Job)
+def set_job_status(job_id: str, body: JobStatusUpdate, index: IndexDep) -> Job:
+    job = index.store.update_job_user_status(job_id, body.status)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    index.refresh(force=True)
     return job
 
 

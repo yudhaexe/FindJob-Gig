@@ -69,6 +69,8 @@ export interface JobSummary {
   posted_at: string | null;
   first_seen_at: string | null;
   duplicate_count: number;
+  scan_run_id?: string | null;
+  user_status?: "keep" | "removed" | null;
 }
 
 export interface JobsPage {
@@ -135,6 +137,8 @@ export interface Job extends Omit<JobSummary, "duplicate_count"> {
   matched_queries: string[];
   raw_ref: { file: string; line: number } | null;
   raw: Record<string, unknown> | null;
+  scan_run_id?: string | null;
+  user_status?: "keep" | "removed" | null;
 }
 
 export type ScrapeCategory = "job" | "gig" | "any";
@@ -161,6 +165,7 @@ export interface SourceRunResult {
   skipped: number;
   ms: number | null;
   error: string | null;
+  logs?: string[];
 }
 
 export interface Run {

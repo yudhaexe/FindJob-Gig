@@ -33,9 +33,10 @@ interface Props {
   onOpen: (id: string) => void;
   onPrev?: () => void;
   onNext?: () => void;
+  onUpdateStatus?: (id: string, status: "keep" | "removed" | null) => void;
 }
 
-export function JobDrawer({ id, q, labels, attribution, onClose, onOpen, onPrev, onNext }: Props) {
+export function JobDrawer({ id, q, labels, attribution, onClose, onOpen, onPrev, onNext, onUpdateStatus }: Props) {
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
@@ -122,6 +123,36 @@ export function JobDrawer({ id, q, labels, attribution, onClose, onOpen, onPrev,
         </button>
         <button type="button" onClick={onNext} disabled={!onNext} className={iconBtn} aria-label="Next job" title="Next (↓ / j)">
           ↓
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const nextStatus = current?.user_status === "keep" ? null : "keep";
+            if (current) {
+              setJob({ ...current, user_status: nextStatus });
+              onUpdateStatus?.(current.id, nextStatus);
+            }
+          }}
+          disabled={!current}
+          className={`${iconBtn} ${current?.user_status === "keep" ? "font-semibold text-amber-500" : ""}`}
+          title={current?.user_status === "keep" ? "Remove keep tag" : "Keep (Save) job"}
+        >
+          {current?.user_status === "keep" ? "★ Kept" : "☆ Keep"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const nextStatus = current?.user_status === "removed" ? null : "removed";
+            if (current) {
+              setJob({ ...current, user_status: nextStatus });
+              onUpdateStatus?.(current.id, nextStatus);
+            }
+          }}
+          disabled={!current}
+          className={`${iconBtn} ${current?.user_status === "removed" ? "font-semibold text-accent" : ""}`}
+          title={current?.user_status === "removed" ? "Restore job" : "Remove / Hide job"}
+        >
+          {current?.user_status === "removed" ? "↺ Restore" : "✕ Remove"}
         </button>
         <button type="button" onClick={copyLink} className={iconBtn}>
           {copied ? "✓ Copied" : "⧉ Copy link"}

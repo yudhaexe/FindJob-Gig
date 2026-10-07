@@ -29,7 +29,7 @@ from core.models import Job, RawRef, Run
 # Fields ignored when deciding whether a posting changed. `raw` is excluded because sources
 # embed per-request noise in it (bid counts, tracking tokens); it is still stored.
 _SAFE_NAME = re.compile(r"[A-Za-z0-9_-][A-Za-z0-9_.-]*")
-_VOLATILE = {"fetched_at", "first_seen_at", "updated_at", "raw_ref", "matched_queries", "duplicates", "raw"}
+_VOLATILE = {"fetched_at", "first_seen_at", "updated_at", "raw_ref", "matched_queries", "duplicates", "raw", "user_status", "scan_run_id"}
 
 
 class LockTimeout(RuntimeError):
@@ -191,6 +191,10 @@ class FileStore:
                 else:
                     job.first_seen_at = old.first_seen_at or old.fetched_at
                     job.matched_queries = sorted(set(old.matched_queries) | set(job.matched_queries))
+                    if job.user_status is None and old.user_status is not None:
+                        job.user_status = old.user_status
+                    if job.scan_run_id is None and old.scan_run_id is not None:
+                        job.scan_run_id = old.scan_run_id
                     if _content(old) == _content(job):
                         job.updated_at = old.updated_at
                         stats.unchanged += 1
@@ -203,6 +207,24 @@ class FileStore:
                 (_dumps(j.model_dump(mode="json")) for j in existing.values()),
             )
         return stats
+
+    def update_job_user_status(self, job_id: str, status: str | None) -> Job | None:
+        source = job_id.split(":", 1)[0]
+        if not _SAFE_NAME.fullmatch(source):
+            return None
+        with self.lock(f"jobs-{source}"):
+            existing = self.read_jobs(source)
+            job = existing.get(job_id)
+            if job is None:
+                return None
+            job.user_status = status  # 'keep', 'removed', or None
+            job.updated_at = datetime.now(timezone.utc)
+            existing[job.id] = job
+            _atomic_write(
+                self.jobs_path(source),
+                (_dumps(j.model_dump(mode="json")) for j in existing.values()),
+            )
+            return job
 
     # ── runs ───────────────────────────────────────────────────────────────
     def save_run(self, run: Run) -> None:

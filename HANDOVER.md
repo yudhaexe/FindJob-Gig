@@ -109,6 +109,8 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M2 selesai**: JobIndex + API jobs/facets/regions/sources, UI tabel + search + filter sidebar + region selector + chips + paging, state di URL. Fix `NO` di regions.yaml. 53 test. Commit `7edc580` | M3 |
 | 2026-10-07 | **M3 selesai**: API scrape/runs/scrape-sources, Job drawer (Overview/Description/Raw JSON), Scrape modal + progress + indikator header + toast, keyboard j/k/Enter/Shift+S. Dependensi baru: `dompurify`. 56 test. Diverifikasi di browser. Commit `dba3809` | M4 |
 | 2026-10-07 | **M4 selesai**: Connector Reddit Gigs (RSS multi-subreddit + filtering hiring/task), Hacker News Freelancer (Algolia API), ekstraksi budget gig & classify budget, preset `gigs`. 60 test lulus, live scrape HN terverifikasi. | M5 |
-| 2026-10-07 | **M5 selesai**: Connector JobSpy (Indeed, Glassdoor, ZipRecruiter, LinkedIn via python-jobspy 1.2.0), connector Kalibrr (ID & SEA REST), connector Telegram Job Channels (HTML preview @loker_id, @idrecruitments). 65 test lulus, live scrape terverifikasi. | M6 |
+| 2026-10-07 | **M5 selesai**: Connector JobSpy (Indeed, Glassdoor, ZipRecruiter, LinkedIn via python-jobspy 1.2.0), connector Kalibrr (ID & SEA REST), connector Telegram Job Channels (HTML preview @loker_id, @idrecruitments). 65 test lulus, live scrape terverifikasi. | User request: silent errors, scan history filter, logs, keep/remove tagging |
+| 2026-10-07 | **Fitur Tambahan (Error Handling, Logs, Scan History, Keep & Remove)**: (1) Anti silent error & auto fail/partial run status, (2) Granular execution logs per source di runner + UI expandable log viewer di progress modal, (3) Scan history & time filter (`scan_run_id`) di API, Index, dan sidebar dropdown, (4) Persistent Keep (★) & Remove (✕) tagging di JSONL, endpoint status, table/card/drawer actions, dan sidebar filter. 66 test lulus, build clean. | M6 |
+
 
 

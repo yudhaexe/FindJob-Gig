@@ -202,6 +202,8 @@ class Filters:
     has_salary: bool = False
     posted_within: int | None = None  # hours
     duration_max: float | None = None  # days
+    scan_run_id: str | None = None  # filter by run_id
+    user_status: str | None = None  # 'keep', 'removed', 'all', or None (default active/not removed)
 
 
 _DURATION_DAYS = {"hour": 1 / 8, "day": 1.0, "week": 7.0, "month": 30.0, "year": 365.0}
@@ -246,7 +248,9 @@ def _period_ok(doc: Doc, f: Filters) -> float | None:
     return doc.money_value * PER_MONTH[doc.money_period] / PER_MONTH[f.salary_period]
 
 
-def _predicates(f: Filters, now: float) -> dict[str, Callable[[Doc], bool]]:
+def _predicates(
+    f: Filters, now: float, run_window: tuple[float, float] | None = None
+) -> dict[str, Callable[[Doc], bool]]:
     """One predicate per filter group; facet counts skip their own group (disjunctive facets)."""
     p: dict[str, Callable[[Doc], bool]] = {}
     if f.region != "ALL" or f.hide_unclear:
@@ -277,6 +281,23 @@ def _predicates(f: Filters, now: float) -> dict[str, Callable[[Doc], bool]]:
                 return True  # unknown duration passes
             return dur["value"] * _DURATION_DAYS[dur["unit"]] <= f.duration_max
         p["duration_max"] = dur_ok
+    if f.user_status == "keep":
+        p["user_status"] = lambda d: d.summary.get("user_status") == "keep"
+    elif f.user_status == "removed":
+        p["user_status"] = lambda d: d.summary.get("user_status") == "removed"
+    elif f.user_status == "all":
+        pass
+    else:
+        p["user_status"] = lambda d: d.summary.get("user_status") != "removed"
+
+    if f.scan_run_id:
+        def run_ok(d: Doc) -> bool:
+            if d.summary.get("scan_run_id") == f.scan_run_id:
+                return True
+            if run_window is not None:
+                return run_window[0] <= d.fetched <= run_window[1]
+            return False
+        p["scan_run_id"] = run_ok
     return p
 
 
@@ -382,7 +403,15 @@ class JobIndex:
                     matched.append(doc)
             docs = matched
 
-        preds = _predicates(f, now)
+        run_window: tuple[float, float] | None = None
+        if f.scan_run_id:
+            run = self.store.load_run(f.scan_run_id)
+            if run and run.started_at:
+                s_ts = run.started_at.timestamp() - 60.0
+                e_ts = (run.finished_at.timestamp() + 60.0) if run.finished_at else (s_ts + 7200.0)
+                run_window = (s_ts, e_ts)
+
+        preds = _predicates(f, now, run_window)
         flags = [{k: p(d) for k, p in preds.items()} for d in docs]
         hits = [d for d, fl in zip(docs, flags) if all(fl.values())]
 

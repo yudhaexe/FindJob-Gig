@@ -370,25 +370,39 @@ function Progress({ run, sourceLabel }: { run: Run; sourceLabel: (name: string) 
   return (
     <section aria-live="polite" className="border-t border-border pt-3">
       <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted">PROGRESS</h3>
-      <ul className="space-y-1">
+      <ul className="space-y-1.5">
         {entries.map(([name, r]) => (
-          <li key={name} className="grid grid-cols-[8rem_1fr_auto] items-baseline gap-2">
-            <span className="truncate">{sourceLabel(name)}</span>
-            <span
-              className={r.status === "error" ? "text-danger" : r.status === "done" ? "text-success" : "text-muted"}
-              title={r.error ?? undefined}
-            >
-              <span className={r.status === "running" ? "inline-block animate-spin" : ""}>{ICON[r.status]}</span>{" "}
-              {r.status === "done"
-                ? `${r.fetched} fetched · ${r.new} new${r.updated ? ` · ${r.updated} updated` : ""}`
-                : r.status === "error"
-                  ? r.error
-                  : r.status === "running"
-                    ? "running…"
-                    : r.status}
-              {r.status === "done" && r.error && <span className="text-warning"> · ⚠ {r.error}</span>}
-            </span>
-            <span className="tabular-nums text-muted">{r.ms != null ? `${(r.ms / 1000).toFixed(1)}s` : ""}</span>
+          <li key={name} className="rounded border border-border/40 bg-surface/30 p-2">
+            <div className="grid grid-cols-[8rem_1fr_auto] items-baseline gap-2">
+              <span className="truncate font-medium">{sourceLabel(name)}</span>
+              <span
+                className={r.status === "error" ? "text-danger" : r.status === "done" ? "text-success" : "text-muted"}
+                title={r.error ?? undefined}
+              >
+                <span className={r.status === "running" ? "inline-block animate-spin" : ""}>{ICON[r.status]}</span>{" "}
+                {r.status === "done"
+                  ? `${r.fetched} fetched · ${r.new} new${r.updated ? ` · ${r.updated} updated` : ""}`
+                  : r.status === "error"
+                    ? r.error
+                    : r.status === "running"
+                      ? "running…"
+                      : r.status}
+                {r.status === "done" && r.error && <span className="text-warning"> · ⚠ {r.error}</span>}
+              </span>
+              <span className="tabular-nums text-muted">{r.ms != null ? `${(r.ms / 1000).toFixed(1)}s` : ""}</span>
+            </div>
+            {r.logs && r.logs.length > 0 && (
+              <details className="mt-1.5 rounded bg-bg/80 px-2 py-1 text-xs">
+                <summary className="cursor-pointer font-mono text-[11px] text-muted hover:text-accent select-none">
+                  Logs ({r.logs.length} line{r.logs.length === 1 ? "" : "s"})
+                </summary>
+                <div className="mt-1 max-h-36 overflow-y-auto space-y-0.5 font-mono text-[11px] leading-tight text-fg/80">
+                  {r.logs.map((log, idx) => (
+                    <div key={idx} className="whitespace-pre-wrap">{log}</div>
+                  ))}
+                </div>
+              </details>
+            )}
           </li>
         ))}
       </ul>

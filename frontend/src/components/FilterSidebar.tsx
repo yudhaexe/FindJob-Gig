@@ -1,8 +1,9 @@
 // Filter sidebar (DESIGN-UIUX.md §2.1). Facet counts come from /api/jobs and ignore their own group.
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { SearchState } from "../hooks/useUrlState";
+import { api } from "../lib/api";
 import { MODE_LABEL, SENIORITY_LABEL, TYPE_LABEL } from "../lib/format";
-import type { RegionsResponse } from "../lib/types";
+import type { RegionsResponse, Run } from "../lib/types";
 
 type Facets = Record<string, Record<string, number>>;
 type ListKey = "type" | "mode" | "source" | "country" | "seniority";
@@ -56,12 +57,26 @@ function Check({
   );
 }
 
+function formatRunLabel(run: Run): string {
+  const dt = run.started_at ? new Date(run.started_at) : null;
+  const timeStr = dt
+    ? dt.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) +
+      " " +
+      dt.toLocaleDateString("id-ID", { day: "2-digit", month: "short" })
+    : run.id;
+  const totalNew = Object.values(run.sources).reduce((acc, s) => acc + (s.new || 0), 0);
+  const totalFetched = Object.values(run.sources).reduce((acc, s) => acc + (s.fetched || 0), 0);
+  const statusIcon = run.status === "failed" ? "❌ " : run.status === "partial" ? "⚠️ " : "";
+  return `${statusIcon}${timeStr} (${totalNew} new / ${totalFetched} fetched)`;
+}
+
 export function FilterSidebar({
   s,
   update,
   facets,
   regions,
   sourceNames,
+  retryRuns = 0,
   onReset,
 }: {
   s: SearchState;
@@ -69,8 +84,24 @@ export function FilterSidebar({
   facets: Facets;
   regions: RegionsResponse | null;
   sourceNames: Record<string, string>;
+  retryRuns?: number;
   onReset: () => void;
 }) {
+  const [runs, setRuns] = useState<Run[]>([]);
+
+  useEffect(() => {
+    let cancel = false;
+    api
+      .runs(40)
+      .then((res) => {
+        if (!cancel) setRuns(res);
+      })
+      .catch(() => {});
+    return () => {
+      cancel = true;
+    };
+  }, [retryRuns]);
+
   const toggle = (key: ListKey, value: string, on: boolean) =>
     update({ [key]: on ? [...s[key], value] : s[key].filter((v) => v !== value) });
 
@@ -101,6 +132,59 @@ export function FilterSidebar({
           Reset
         </button>
       </div>
+
+      <Group title="Status (Keep / Remove)">
+        <div className="flex flex-wrap gap-1">
+          {[
+            ["", "Active"],
+            ["keep", "★ Kept"],
+            ["removed", "✕ Removed"],
+            ["all", "All"],
+          ].map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => update({ user_status: val })}
+              className={`h-7 rounded-ui border px-2 text-xs transition-colors ${
+                s.user_status === val
+                  ? "border-accent bg-accent text-accent-fg font-medium"
+                  : "border-border hover:bg-surface"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </Group>
+
+      <Group title="Scan History (Jam Scraping)" open={!!s.scan_run_id || runs.length > 0}>
+        <div className="space-y-1.5">
+          <select
+            value={s.scan_run_id}
+            onChange={(e) => update({ scan_run_id: e.target.value })}
+            className="h-8 w-full rounded-ui border border-border bg-surface px-2 text-xs"
+          >
+            <option value="">All scans / runs (Semua)</option>
+            {runs.map((r) => (
+              <option key={r.id} value={r.id}>
+                {formatRunLabel(r)}
+              </option>
+            ))}
+          </select>
+          {s.scan_run_id && (
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span>Filtering by scan run</span>
+              <button
+                type="button"
+                onClick={() => update({ scan_run_id: "" })}
+                className="text-accent hover:underline"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
+      </Group>
 
       <Group title="Region">
         <Check

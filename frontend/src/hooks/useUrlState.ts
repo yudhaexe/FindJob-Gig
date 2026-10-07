@@ -18,6 +18,8 @@ export interface SearchState {
   posted_within: string; // hours, "" = any
   include_worldwide: boolean;
   hide_unclear: boolean;
+  user_status: string; // "" (default active) | "keep" | "removed" | "all"
+  scan_run_id: string; // "" = any | specific run_id
   sort: Sort | "";
   page: number;
   job: string; // id of the job open in the drawer, "" = closed
@@ -26,7 +28,7 @@ export interface SearchState {
 export const DEFAULTS: SearchState = {
   q: "", region: "ALL", category: "", type: [], mode: [], source: [], country: [], seniority: [],
   currency: "", salary_min: "", salary_period: "month", has_salary: false, posted_within: "",
-  include_worldwide: true, hide_unclear: false, sort: "", page: 1, job: "",
+  include_worldwide: true, hide_unclear: false, user_status: "", scan_run_id: "", sort: "", page: 1, job: "",
 };
 
 const LIST_KEYS = ["type", "mode", "source", "country", "seniority"] as const;
@@ -54,6 +56,8 @@ function fromUrl(search: string): SearchState {
   s.posted_within = p.get("posted_within") ?? "";
   s.include_worldwide = p.get("include_worldwide") !== "0";
   s.hide_unclear = p.get("hide_unclear") === "1";
+  s.user_status = p.get("user_status") ?? "";
+  s.scan_run_id = p.get("scan_run_id") ?? "";
   s.sort = (p.get("sort") as Sort | null) ?? "";
   s.page = Math.max(1, Number(p.get("page")) || 1);
   s.job = p.get("job") ?? "";
@@ -74,6 +78,8 @@ function toUrl(s: SearchState): string {
   set("posted_within", s.posted_within);
   if (!s.include_worldwide) p.set("include_worldwide", "0");
   if (s.hide_unclear) p.set("hide_unclear", "1");
+  set("user_status", s.user_status);
+  set("scan_run_id", s.scan_run_id);
   set("sort", s.sort);
   if (s.page > 1) p.set("page", String(s.page));
   set("job", s.job);
@@ -99,6 +105,8 @@ export function toApiParams(s: SearchState, pageSize: number): Record<string, st
     salary_period: s.currency && s.salary_min ? s.salary_period : undefined,
     has_salary: s.has_salary || undefined,
     posted_within: s.posted_within || undefined,
+    user_status: s.user_status || undefined,
+    scan_run_id: s.scan_run_id || undefined,
     sort: s.sort || undefined,
     page: s.page,
     page_size: pageSize,
@@ -109,7 +117,8 @@ export function activeFilterCount(s: SearchState): number {
   return (
     (s.category ? 1 : 0) + LIST_KEYS.reduce((n, k) => n + s[k].length, 0) + (s.currency ? 1 : 0) +
     (s.currency && s.salary_min ? 1 : 0) + (s.has_salary ? 1 : 0) + (s.posted_within ? 1 : 0) +
-    (s.hide_unclear ? 1 : 0) + (s.include_worldwide ? 0 : 1)
+    (s.hide_unclear ? 1 : 0) + (s.include_worldwide ? 0 : 1) +
+    (s.user_status ? 1 : 0) + (s.scan_run_id ? 1 : 0)
   );
 }
 

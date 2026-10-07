@@ -115,8 +115,15 @@ def test_runner_end_to_end(tmp_path):
     assert set(jobs) == {"fake:1", "fake:3"}
     assert jobs["fake:1"].matched_queries == ["photographer", "video editor"]
     assert jobs["fake:1"].raw_ref.line >= 1
+    assert jobs["fake:1"].scan_run_id == run.id
     assert "video" in jobs["fake:1"].topics
     assert store.load_run(run.id).status == "partial"
+    assert len(r.logs) > 0
+    assert any("Fetched" in log for log in r.logs)
+    assert any("Failed parsing item" in log for log in r.logs)
+    assert any("Completed" in log for log in r.logs)
+    assert len(run.sources["blocked"].logs) > 0
+    assert any("Failed with SourceError" in log for log in run.sources["blocked"].logs)
 
 
 def test_pick_sources_by_region_and_category():

@@ -85,15 +85,19 @@ async def _run_source(
 ) -> None:
     res = run.sources[src.name]
     res.status = "running"
+    res.logs.append(f"Started scrape for {src.display_name} with {len(q.keywords) or 1} keyword(s)")
     store.save_run(run)
     if progress:
         progress(src.name, res)
     t0 = time.monotonic()
     try:
         found, errors = await _fetch(src, q, Http(client, src.min_interval))
+        for err in errors:
+            res.logs.append(f"Warning/Error: {err}")
         if errors and not found:
             raise SourceError("; ".join(errors))
 
+        res.logs.append(f"Fetched {len(found)} raw items from {src.display_name}")
         now = datetime.now(timezone.utc)
         records = [
             {"source": src.name, "provider": src.provider, "fetched_at": now.isoformat(),
@@ -107,11 +111,13 @@ async def _run_source(
         for (raw, kws), ref in zip(found.values(), refs):
             try:
                 job = finalize(src.to_job(raw, now))
-            except Exception:  # one odd item must not sink the whole source
+            except Exception as e:  # one odd item must not sink the whole source
                 bad += 1
+                res.logs.append(f"Failed parsing item {src.external_id(raw)}: {e}")
                 continue
             job.matched_queries = sorted(kws)
             job.raw_ref = ref
+            job.scan_run_id = run.id
             if passes(job, q, now):
                 jobs.append(job)
 
@@ -122,10 +128,13 @@ async def _run_source(
         res.status = "done"
         notes = errors + ([f"{bad} item(s) could not be parsed"] if bad else [])
         res.error = "; ".join(notes) or None
+        res.logs.append(f"Completed: {res.new} new, {res.updated} updated, {res.skipped} skipped/filtered out")
     except SourceError as e:
         res.status, res.error = "error", str(e)
+        res.logs.append(f"Failed with SourceError: {e}")
     except Exception as e:  # noqa: BLE001 — surface anything unexpected in the run log
         res.status, res.error = "error", f"{type(e).__name__}: {e}"
+        res.logs.append(f"Unexpected error: {type(e).__name__}: {e}")
     finally:
         res.ms = int((time.monotonic() - t0) * 1000)
         store.save_run(run)

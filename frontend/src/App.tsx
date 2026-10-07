@@ -9,6 +9,7 @@ import { ScrapeModal } from "./components/ScrapeModal";
 import { useDebounced, useJobs, useRegions, useSources } from "./hooks/useApi";
 import { isActive, runProgress, useScrapeRun } from "./hooks/useScrapeRun";
 import { DEFAULTS, activeFilterCount, useUrlState, type SearchState } from "./hooks/useUrlState";
+import { api } from "./lib/api";
 import { relTime } from "./lib/format";
 import type { Run, ScrapeQuery } from "./lib/types";
 
@@ -40,6 +41,15 @@ export default function App() {
     setToast(run);
   }, []);
   const scrape = useScrapeRun(onRunFinish);
+
+  const onUpdateStatus = useCallback(async (jobId: string, status: "keep" | "removed" | null) => {
+    try {
+      await api.updateJobStatus(jobId, status);
+      setRetry((n) => n + 1);
+    } catch (e) {
+      console.error("Failed to update job status", e);
+    }
+  }, []);
 
   const sourceNames = useMemo(
     () => Object.fromEntries((sources.data?.sources ?? []).map((x) => [x.name, x.display_name])),
@@ -153,6 +163,7 @@ export default function App() {
             facets={page?.facets ?? {}}
             regions={regions.data}
             sourceNames={sourceNames}
+            retryRuns={retry}
             onReset={reset}
           />
         </aside>
@@ -204,10 +215,24 @@ export default function App() {
             ) : page ? (
               <>
                 <div className="hidden md:block">
-                  <ResultsTable items={page.items} labels={labels} openId={s.job} cursor={cursor} onOpen={openJob} />
+                  <ResultsTable
+                    items={page.items}
+                    labels={labels}
+                    openId={s.job}
+                    cursor={cursor}
+                    onOpen={openJob}
+                    onUpdateStatus={onUpdateStatus}
+                  />
                 </div>
                 <div className="md:hidden">
-                  <ResultsCards items={page.items} labels={labels} openId={s.job} cursor={cursor} onOpen={openJob} />
+                  <ResultsCards
+                    items={page.items}
+                    labels={labels}
+                    openId={s.job}
+                    cursor={cursor}
+                    onOpen={openJob}
+                    onUpdateStatus={onUpdateStatus}
+                  />
                 </div>
                 <Pagination page={s.page} pages={pages} onPage={(p) => update({ page: p }, { push: true })} />
               </>
@@ -226,6 +251,7 @@ export default function App() {
           onOpen={(id) => update({ job: id })}
           onPrev={openIndex > 0 ? () => update({ job: items[openIndex - 1].id }) : undefined}
           onNext={openIndex >= 0 && openIndex < items.length - 1 ? () => update({ job: items[openIndex + 1].id }) : undefined}
+          onUpdateStatus={onUpdateStatus}
         />
       )}
 
@@ -258,6 +284,7 @@ export default function App() {
               facets={page?.facets ?? {}}
               regions={regions.data}
               sourceNames={sourceNames}
+              retryRuns={retry}
               onReset={reset}
             />
           </div>

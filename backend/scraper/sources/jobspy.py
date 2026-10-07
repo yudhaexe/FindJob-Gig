@@ -91,8 +91,12 @@ class JobSpy(Source):
                 verbose=0,
                 description_format="markdown",
             )
-        except Exception:
-            return []
+        except Exception as e:
+            from scraper.base import SourceBlocked, SourceError
+            err_msg = str(e)
+            if "429" in err_msg or "blocked" in err_msg.lower():
+                raise SourceBlocked(f"JobSpy blocked: {err_msg[:200]}") from e
+            raise SourceError(f"JobSpy error: {err_msg[:200]}") from e
 
         if df is None or df.empty:
             return []

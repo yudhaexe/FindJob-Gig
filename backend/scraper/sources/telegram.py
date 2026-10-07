@@ -87,13 +87,15 @@ class Telegram(Source):
         items: list[dict[str, Any]] = []
         kw_lower = keyword.lower() if keyword else None
 
+        errors: list[str] = []
         for chan in self.channels:
             if len(items) >= limit:
                 break
             url = f"https://t.me/s/{chan}"
             try:
                 resp = await http.get(url, headers=self.headers())
-            except Exception:
+            except Exception as e:
+                errors.append(f"@{chan}: {e}")
                 continue
 
             parser = _TelegramHTMLParser()
@@ -112,6 +114,10 @@ class Telegram(Source):
                     "body": body,
                     "time": post.get("time"),
                 })
+
+        if errors and not items:
+            from scraper.base import SourceError
+            raise SourceError("; ".join(errors))
 
         return items[:limit]
 

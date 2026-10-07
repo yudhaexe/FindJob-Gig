@@ -136,3 +136,50 @@ def test_api(index):
         assert sources["total"] == 5 and sources["last_fetched"]
     finally:
         app.dependency_overrides.clear()
+
+
+def test_user_status_and_scan_filter(index, tmp_path):
+    from storage.index import default_index
+
+    app.dependency_overrides[default_index] = lambda: index
+    try:
+        client = TestClient(app)
+        # Default: all 5 jobs active
+        r = client.get("/api/jobs")
+        assert r.json()["total"] == 5
+
+        # Mark alpha:1 as keep
+        resp = client.post("/api/jobs/alpha:1/status", json={"status": "keep"})
+        assert resp.status_code == 200
+        assert resp.json()["user_status"] == "keep"
+
+        # Mark alpha:2 as removed
+        resp = client.post("/api/jobs/alpha:2/status", json={"status": "removed"})
+        assert resp.status_code == 200
+        assert resp.json()["user_status"] == "removed"
+
+        # Default query now has 4 jobs (alpha:2 is hidden)
+        r = client.get("/api/jobs")
+        item_ids = [item["id"] for item in r.json()["items"]]
+        assert "alpha:2" not in item_ids
+        assert "alpha:1" in item_ids
+        assert r.json()["total"] == 4
+
+        # Filter keep: only alpha:1
+        r_keep = client.get("/api/jobs", params={"user_status": "keep"})
+        assert [i["id"] for i in r_keep.json()["items"]] == ["alpha:1"]
+
+        # Filter removed: only alpha:2
+        r_removed = client.get("/api/jobs", params={"user_status": "removed"})
+        assert [i["id"] for i in r_removed.json()["items"]] == ["alpha:2"]
+
+        # Re-upserting does not overwrite user_status
+        store = FileStore(tmp_path)
+        store.upsert_jobs("alpha", [_job("alpha", 1, "Senior Video Editor (Renamed)")])
+        index.refresh(force=True)
+        job1 = index.get("alpha:1")
+        assert job1.user_status == "keep"
+        assert job1.title == "Senior Video Editor (Renamed)"
+    finally:
+        app.dependency_overrides.clear()
+

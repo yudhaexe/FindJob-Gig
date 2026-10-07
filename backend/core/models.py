@@ -106,6 +106,8 @@ class Job(BaseModel):
     matched_queries: list[str] = Field(default_factory=list)
     raw_ref: RawRef | None = None
     raw: dict[str, Any] | None = None
+    scan_run_id: str | None = None
+    user_status: Literal["keep", "removed"] | None = None
 
 
 class JobSummary(BaseModel):
@@ -132,6 +134,8 @@ class JobSummary(BaseModel):
     posted_at: datetime | None = None
     first_seen_at: datetime | None = None
     duplicate_count: int = 0
+    scan_run_id: str | None = None
+    user_status: Literal["keep", "removed"] | None = None
 
     @classmethod
     def from_job(cls, job: Job) -> "JobSummary":
@@ -159,6 +163,8 @@ class SourceRunResult(BaseModel):
     skipped: int = 0
     ms: int | None = None
     error: str | None = None
+    logs: list[str] = Field(default_factory=list)
+
 
 
 class Run(BaseModel):
