@@ -1,11 +1,13 @@
 // `npm start`: backend (FastAPI :8000, auto-reload) + frontend (Vite :5173) in one terminal.
 import { BACKEND, FRONTEND, VENV_PY, VITE, c, killTree, requireSetup, startProc } from "./lib.mjs";
+import { ensurePortsFree } from "./ports.mjs";
 
 requireSetup();
+await ensurePortsFree([8000, 5173]);
 
 const procs = [
   startProc("api", c.magenta, VENV_PY, ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"], BACKEND),
-  startProc("web", c.cyan, process.execPath, [VITE, "--port", "5173"], FRONTEND),
+  startProc("web", c.cyan, process.execPath, [VITE, "--port", "5173", "--strictPort"], FRONTEND),
 ];
 
 console.log(`\n  ${c.green("App")}  http://localhost:5173`);
