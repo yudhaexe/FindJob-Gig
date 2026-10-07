@@ -116,6 +116,7 @@ class JobSummary(BaseModel):
     id: str
     source: str
     source_name: str
+    provider: str | None = None  # e.g. indeed / linkedin for the JobSpy source
     source_url: str
     title: str
     company: str | None = None

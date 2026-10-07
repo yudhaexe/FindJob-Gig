@@ -1,6 +1,6 @@
 // Results area (DESIGN-UIUX.md §2.1, §2.4, §3): toolbar with chips + sort, table (≥768px), cards (mobile).
 import { type ReactNode, useState } from "react";
-import { SourceBadge } from "./SourceBadge";
+import { SourceBadge, logoKey } from "./SourceBadge";
 import type { SearchState } from "../hooks/useUrlState";
 import {
   CATEGORY_LABEL, MODE_LABEL, SENIORITY_LABEL, TYPE_LABEL, duration, fullDate, locationLabel, money, relTime, typeKey,
@@ -193,6 +193,7 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateSt
     <table className="w-full table-fixed border-collapse text-sm">
       <colgroup>
         <col className="w-[52px]" />
+        <col className="w-[44px]" />
         {cols.map((c) => (
           <col key={c.id} style={{ width: `${(c.weight / total) * 100}%` }} />
         ))}
@@ -200,6 +201,7 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateSt
       <thead className="sticky top-0 z-10 bg-bg text-left text-xs text-muted">
         <tr className="border-b border-border">
           <th className="px-1 py-2 text-center font-medium">Tag</th>
+          <th className="px-1 py-2 text-center font-medium" title="Source logo">Src</th>
           {cols.map((c) => (
             <th key={c.id} className="px-3 py-2 font-medium">{c.label}</th>
           ))}
@@ -237,8 +239,13 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateSt
                   {j.user_status === "removed" ? "↺" : "✕"}
                 </button>
               </div>
-              <div className="mt-1 flex justify-center">
-                <SourceBadge source={j.source} label={labels.source(j.source)} />
+            </td>
+            <td className="px-1 py-2 text-center">
+              <div className="flex justify-center pt-0.5">
+                <SourceBadge
+                  logo={logoKey(j)}
+                  label={j.provider && j.source === "jobspy" ? `${labels.source(j.source)} · ${j.provider}` : labels.source(j.source)}
+                />
               </div>
             </td>
             {cols.map((c) => (

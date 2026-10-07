@@ -51,6 +51,7 @@ export interface JobSummary {
   id: string;
   source: string;
   source_name: string;
+  provider?: string | null;
   source_url: string;
   title: string;
   company: string | null;
