@@ -97,7 +97,10 @@ export default function App() {
     [s.region],
   );
 
-  useEffect(() => setCursor(-1), [items]);
+  // Keep the cursor when the same list reloads (e.g. after Keep/Remove); reset for a new page or query.
+  const listKey = JSON.stringify([s.page, page ? toApiParams({ ...s, page: 1, job: "" }, 0) : null]);
+  useEffect(() => setCursor(-1), [listKey]);
+  useEffect(() => setCursor((c) => Math.min(c, items.length - 1)), [items]);
   useEffect(() => {
     if (openIndex >= 0) setCursor(openIndex);
   }, [openIndex]);
