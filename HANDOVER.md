@@ -16,6 +16,7 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 - **Fase:** **M1 selesai** (2026-10-07). Berikutnya **M2**.
 - **Kode M1:** `storage/filestore.py` (JSONL, atomic replace, lock file per sumber, runs), `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`. 46 test lulus (fixture asli di `backend/tests/fixtures/`).
 - **Terverifikasi nyata:** `fjg scrape --preset creative --max 30 --since 168` → jobstreet 67, freelancer 126, himalayas 28 job tersimpan (~25 dtk). Scrape ulang → `new=0 updated=0` (idempoten).
+- **Git:** branch `main`, commit M1 = `fcc8e62` (lihat `git log`).
 - **Mode provider:** fallback (D15). Saat ini tiap sumber baru punya 1 provider; kolom `provider` sudah ada di `Job`.
 - **Next step (M2):** `storage/index.py` (load JSONL → index in-memory, reload by mtime, `dedup.group_duplicates`), `/api/jobs` filter/sort/paging/facets + `/api/regions`, UI tabel + search + filter sidebar + region selector.
 - **Belum dikerjakan dari desain:** `fjg reindex` (re-normalize dari raw), `state/sources.json` (fail_count/auto-disable), detail call JobStreet (deskripsi penuh; sekarang hanya teaser).
@@ -94,4 +95,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Root `npm i` / `npm start` / `npm test` / `serve` / `fjg` (scripts/*.mjs). Diuji dari clean install. Audit repo & library (PLANNING §3). Commit pertama tanpa co-author (permintaan user) | M1 |
 | 2026-10-07 | Validasi nyata 18 sumber + 8 kasus JobSpy untuk freelance foto/video → VALIDATION.md; prioritas sumber & M1 diubah | M1 |
 | 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1. User setuju fallback (D15). Commit `8d64998` | M1 |
-| 2026-10-07 | **M1 selesai**: FileStore, runner, classify (rules/skills/topics yaml), money, regions, dedup, 3 connector (Freelancer, JobStreet, Himalayas), `fjg scrape`/`sources`. 46 test. Scrape nyata preset creative OK & idempoten | M2 |
+| 2026-10-07 | **M1 selesai**: FileStore, runner, classify (rules/skills/topics yaml), money, regions, dedup, 3 connector (Freelancer, JobStreet, Himalayas), `fjg scrape`/`sources`. 46 test. Scrape nyata preset creative OK & idempoten. Commit `fcc8e62` | M2 |
