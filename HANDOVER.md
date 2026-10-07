@@ -14,8 +14,9 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 ## Status Saat Ini
 
 - **Fase:** **M0 selesai** (2026-10-07). Berikutnya **M1**.
-- **Kode:** scaffold backend (FastAPI + skema pydantic di `backend/core/models.py`, endpoint `/api/health` + stub `/api/jobs`, CLI `fjg info`, 3 test lulus) dan frontend (Vite 8 + React 19 + TS 7 + Tailwind 4, shell header + empty state, proxy `/api` → :8000). `git init` sudah, **belum ada commit**.
+- **Kode:** scaffold backend (FastAPI + skema pydantic di `backend/core/models.py`, endpoint `/api/health` + stub `/api/jobs`, CLI `fjg info`, 3 test lulus) dan frontend (Vite 8 + React 19 + TS 7 + Tailwind 4, shell header + empty state, proxy `/api` → :8000). Branch `main`, commit terakhir: `8d64998` (lihat `git log`).
 - **Validasi sumber selesai** (fokus freelance foto/video): lihat [VALIDATION.md](VALIDATION.md). Script probe ada di `backend/probes/`.
+- **Mode provider:** fallback (D15), sudah disetujui user.
 - **Next step:** M1 = `storage/filestore.py` (JSONL + atomic write + lock), `scraper/base.py`, normalize/classify (+ kamus Creative)/dedup, sumber **Freelancer.com + JobStreet ID + Himalayas**, `fjg scrape`.
 
 ## Cara Menjalankan
@@ -84,4 +85,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M0 selesai**: git init, scaffold backend + frontend, skema pydantic, start.bat/ps1. Terverifikasi: pytest 3/3, `npm run build` ok, `/api/health` + proxy Vite `/api/jobs` ok | M1 |
 | 2026-10-07 | Root `npm i` / `npm start` / `npm test` / `serve` / `fjg` (scripts/*.mjs). Diuji dari clean install. Audit repo & library (PLANNING §3). Commit pertama tanpa co-author (permintaan user) | M1 |
 | 2026-10-07 | Validasi nyata 18 sumber + 8 kasus JobSpy untuk freelance foto/video → VALIDATION.md; prioritas sumber & M1 diubah | M1 |
-| 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1 | M1 (user setuju fallback) |
+| 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1. User setuju fallback (D15). Commit `8d64998` | M1 |
