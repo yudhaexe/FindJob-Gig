@@ -26,6 +26,7 @@ video:
     - '\bshort[- ]?(form )?videos?\b'
     - '\b(premiere pro|after effects|davinci resolve|final cut|capcut|motion graphics?|color grad(ing|ist))\b'
     - '\b(reels|youtube (editor|video)|tiktok (editor|content))\b'
+    - '\b(creating|create|make|making|produce|producing)\s+([^|.\n]{0,30}?\s+)?videos?\b'
   exclude:
     - '\bvideo ?games?\b'
     - '\bvideo ?(call|conferenc\w*|interview)s?\b'

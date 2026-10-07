@@ -33,13 +33,36 @@ sources:
     page_size: 20   # fixed by the API
     attribution: "Jobs from Himalayas (himalayas.app)"
 
+  reddit:
+    enabled: true
+    display_name: "Reddit Gigs"
+    category: gig
+    markets: [ALL]
+    min_interval: 3.0
+    page_size: 25
+    subreddits: [forhire, slavelabour, PhotoshopRequest, VideoEditingRequests, freelance_forhire]
+    attribution: null
+
+  hackernews:
+    enabled: true
+    display_name: "Hacker News Freelancer"
+    category: gig
+    markets: [ALL]
+    min_interval: 1.0
+    page_size: 30
+    attribution: "HN Search powered by Algolia"
+
 # Named scrape presets: `fjg scrape --preset creative`.
 presets:
   creative:
     label: "Creative / Photo & Video"
     keywords: [photographer, videographer, video editor, photo editor, retoucher, fotografer, videografer, editor video, content creator]
-    sources: [freelancer, jobstreet, himalayas]
+    sources: [freelancer, jobstreet, himalayas, reddit]
   indonesia:
     label: "Indonesia"
     region: ID
     sources: [jobstreet]
+  gigs:
+    label: "Freelance & Gigs"
+    keywords: [video editor, web developer, designer, writer, assistant]
+    sources: [freelancer, reddit, hackernews]

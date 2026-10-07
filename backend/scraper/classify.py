@@ -167,11 +167,20 @@ def classify(job: Job) -> Job:
         if money is None and (m := find_money(desc)) and m.period not in ("unknown", "fixed"):
             money = m  # free text is full of funding rounds and prices; trust it only with a pay period
         if money:
-            job.salary = Salary(
-                min=money.min, max=money.max, currency=money.currency,
-                currency_guessed=money.currency_guessed, period=money.period,
-                raw=money.raw, estimated=True,
-            )
+            if job.category == "gig":
+                from core.models import Budget
+                b_type = "hourly" if money.period == "hour" else ("fixed" if money.period in ("fixed", "day", "week") else "unknown")
+                job.budget = Budget(
+                    min=money.min, max=money.max, currency=money.currency,
+                    currency_guessed=money.currency_guessed, type=b_type,
+                    raw=money.raw,
+                )
+            else:
+                job.salary = Salary(
+                    min=money.min, max=money.max, currency=money.currency,
+                    currency_guessed=money.currency_guessed, period=money.period,
+                    raw=money.raw, estimated=True,
+                )
 
     job.skills = list(dict.fromkeys([*job.skills, *find_skills(title, tags, desc)]))
     job.topics = list(dict.fromkeys([*job.topics, *find_topics(title, tags, desc)]))

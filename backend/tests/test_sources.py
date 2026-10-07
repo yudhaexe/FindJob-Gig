@@ -20,7 +20,7 @@ def jobs_for(name: str):
     return [finalize(src.to_job(raw, NOW)) for raw in raws]
 
 
-@pytest.mark.parametrize("name", ["freelancer", "jobstreet", "himalayas"])
+@pytest.mark.parametrize("name", ["freelancer", "jobstreet", "himalayas", "reddit", "hackernews"])
 def test_every_fixture_maps_to_a_valid_job(name):
     for job in jobs_for(name):
         assert job.id.startswith(f"{name}:")
@@ -68,3 +68,38 @@ def test_himalayas():
     assert worldwide.remote_scope.type in ("worldwide", "timezone")
     assert uk.remote_scope.countries == ["GB"]
     assert all(j.work_mode == "remote" for j in (salaried, worldwide, uk))
+
+
+def test_reddit():
+    jobs = jobs_for("reddit")
+    assert len(jobs) == 3
+    first, second, third = jobs
+    assert first.category == "gig" and first.employment_type == "freelance"
+    assert first.source == "reddit"
+    assert "r/forhire" in first.tags
+    assert first.work_mode == "remote" and first.remote_scope.type == "worldwide"
+
+    # Second is slavelabour task with budget $50
+    assert second.budget is not None
+    assert second.budget.currency == "USD"
+    assert second.budget.min == 50
+
+    # Third is traditional artist video creation
+    assert "video" in third.topics
+    assert third.budget is not None
+    assert third.budget.min == 500 and third.budget.max == 1500
+
+
+def test_hackernews():
+    jobs = jobs_for("hackernews")
+    assert len(jobs) == 2
+    first, second = jobs
+    assert first.category == "gig" and first.employment_type == "freelance"
+    assert first.source == "hackernews"
+    assert "whoishiring" in first.tags
+
+    assert second.company == "Tiger Tracks"
+    assert second.budget is not None
+    assert second.budget.currency == "USD"
+    assert second.budget.min == 80
+
