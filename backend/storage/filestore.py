@@ -18,7 +18,7 @@ import re
 import time
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -263,3 +263,41 @@ class FileStore:
     def list_runs(self, limit: int = 50) -> list[Run]:
         files = sorted(self.runs_dir.glob("*.json"), reverse=True)[:limit]
         return [Run.model_validate_json(p.read_bytes()) for p in files]
+
+    # ── retention ──────────────────────────────────────────────────────────
+    def prune(self, days: int, dry_run: bool = False, now: datetime | None = None) -> dict[str, list[Path]]:
+        """Move raw day-files and run records older than `days` into data/archive/ (nothing is deleted).
+
+        jobs/*.jsonl is never touched, so Keep/Remove tags survive. Archived runs no longer resolve
+        for the scan-history filter.
+        """
+        cutoff = (now or datetime.now(timezone.utc)) - timedelta(days=days)
+        moved: dict[str, list[Path]] = {"raw": [], "runs": []}
+        candidates: list[tuple[str, Path, datetime | None]] = []
+        for path in self.raw_dir.glob("*/*.jsonl"):
+            try:
+                day = datetime.strptime(path.stem, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                day = None
+            candidates.append(("raw", path, day))
+        for path in self.runs_dir.glob("*.json"):
+            try:  # run ids start with their UTC start time: 2026-10-07T12-20-04_4098
+                day = datetime.strptime(path.stem[:19], "%Y-%m-%dT%H-%M-%S").replace(tzinfo=timezone.utc)
+            except ValueError:
+                day = None
+            candidates.append(("runs", path, day))
+        for kind, path, when in candidates:
+            if when is None or when >= cutoff:
+                continue
+            moved[kind].append(path)
+            if dry_run:
+                continue
+            base = self.raw_dir if kind == "raw" else self.runs_dir
+            dest = self.root / "archive" / kind / path.relative_to(base)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if kind == "raw":  # appends may be racing: hold the same lock as append_raw
+                with self.lock(f"raw-{path.parent.name}"):
+                    path.replace(dest)
+            else:
+                path.replace(dest)
+        return moved

@@ -135,3 +135,27 @@ def test_pick_sources_by_region_and_category():
     assert pick_sources(ScrapeQuery(category="job"), available) == []
     with pytest.raises(ValueError):
         pick_sources(ScrapeQuery(sources=["nope"]), available)
+
+
+def test_prune_archives_old_raw_and_runs_only(tmp_path):
+    from datetime import datetime, timezone
+
+    store = FileStore(tmp_path)
+    old = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    new = datetime(2026, 9, 30, tzinfo=timezone.utc)
+    store.append_raw("alpha", [{"a": 1}], old)
+    store.append_raw("alpha", [{"a": 2}], new)
+    (store.runs_dir / "2026-01-01T10-00-00_aaaa.json").write_text("{}")
+    (store.runs_dir / "2026-09-30T10-00-00_bbbb.json").write_text("{}")
+    (store.jobs_dir / "alpha.jsonl").write_text("{}\n")
+    now = datetime(2026, 10, 7, tzinfo=timezone.utc)
+
+    dry = store.prune(30, dry_run=True, now=now)
+    assert len(dry["raw"]) == 1 and len(dry["runs"]) == 1 and store.raw_path("alpha", old).exists()
+
+    store.prune(30, now=now)
+    assert not store.raw_path("alpha", old).exists() and store.raw_path("alpha", new).exists()
+    assert (tmp_path / "archive/raw/alpha/2026-01-01.jsonl").exists()
+    assert (tmp_path / "archive/runs/2026-01-01T10-00-00_aaaa.json").exists()
+    assert (store.runs_dir / "2026-09-30T10-00-00_bbbb.json").exists()
+    assert (store.jobs_dir / "alpha.jsonl").exists()

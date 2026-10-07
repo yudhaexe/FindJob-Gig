@@ -104,6 +104,19 @@ def scrape(
         raise typer.Exit(1)
 
 
+@app.command()
+def prune(
+    days: Annotated[int, typer.Option("--days", "-d", min=1, help="Archive raw files and runs older than this")] = 90,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Only list what would move")] = False,
+) -> None:
+    """Move old raw day-files and run records to data/archive/ (jobs/ is never touched)."""
+    from storage.filestore import FileStore
+
+    moved = FileStore().prune(days, dry_run=dry_run)
+    verb = "would archive" if dry_run else "archived"
+    typer.echo(f"{verb} {len(moved['raw'])} raw files, {len(moved['runs'])} runs older than {days} days")
+
+
 schedule_app = typer.Typer(help="Scheduled scrapes (data/state/schedules.json).", no_args_is_help=True)
 app.add_typer(schedule_app, name="schedule")
 
