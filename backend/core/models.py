@@ -175,6 +175,7 @@ class Run(BaseModel):
     status: RunStatus = "queued"
     started_at: datetime | None = None
     finished_at: datetime | None = None
+    stopped: bool = False  # the user pressed Stop; whatever was fetched by then was still saved
     sources: dict[str, SourceRunResult] = Field(default_factory=dict)
 
 

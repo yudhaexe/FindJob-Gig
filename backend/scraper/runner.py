@@ -59,13 +59,37 @@ def passes(job: Job, q: ScrapeQuery, now: datetime) -> bool:
     return True
 
 
-async def _fetch(src: Source, q: ScrapeQuery, http: Http) -> tuple[dict[str, tuple[dict, set[str]]], list[str]]:
+async def _search_or_stop(
+    src: Source, kw: str | None, q: ScrapeQuery, http: Http, stop: asyncio.Event | None
+) -> list[dict[str, Any]] | None:
+    """One keyword search; returns None if the user pressed Stop first (the search is abandoned)."""
+    if stop is None:
+        return await src.search(kw, q, q.max_per_source, http)
+    search = asyncio.ensure_future(src.search(kw, q, q.max_per_source, http))
+    waiter = asyncio.ensure_future(stop.wait())
+    try:
+        await asyncio.wait({search, waiter}, return_when=asyncio.FIRST_COMPLETED)
+        if search.done():
+            return search.result()
+        search.cancel()  # a blocking worker thread (JobSpy) keeps running, but its result is ignored
+        return None
+    finally:
+        waiter.cancel()
+
+
+async def _fetch(
+    src: Source, q: ScrapeQuery, http: Http, stop: asyncio.Event | None = None
+) -> tuple[dict[str, tuple[dict, set[str]]], list[str]]:
     """All raw items for every keyword, unique by external id, remembering which keywords hit them."""
     found: dict[str, tuple[dict[str, Any], set[str]]] = {}
     errors: list[str] = []
     for kw in q.keywords or [None]:
+        if stop is not None and stop.is_set():
+            break
         try:
-            items = await src.search(kw, q, q.max_per_source, http)
+            items = await _search_or_stop(src, kw, q, http, stop)
+            if items is None:
+                break
         except SourceBlocked as e:
             errors.append(f"{kw or '*'}: {e}")
             break  # hammering a site that blocks us only makes it worse
@@ -81,7 +105,8 @@ async def _fetch(src: Source, q: ScrapeQuery, http: Http) -> tuple[dict[str, tup
 
 
 async def _run_source(
-    src: Source, q: ScrapeQuery, client: httpx.AsyncClient, store: FileStore, run: Run, progress: ProgressFn | None
+    src: Source, q: ScrapeQuery, client: httpx.AsyncClient, store: FileStore, run: Run, progress: ProgressFn | None,
+    stop: asyncio.Event | None = None,
 ) -> None:
     res = run.sources[src.name]
     res.status = "running"
@@ -91,11 +116,18 @@ async def _run_source(
         progress(src.name, res)
     t0 = time.monotonic()
     try:
-        found, errors = await _fetch(src, q, Http(client, src.min_interval))
+        found, errors = await _fetch(src, q, Http(client, src.min_interval), stop)
         for err in errors:
             res.logs.append(f"Warning/Error: {err}")
-        if errors and not found:
+        stopped = stop is not None and stop.is_set()
+        if stopped:
+            res.logs.append(f"Stopped by user: processing the {len(found)} item(s) fetched so far")
+        if errors and not found and not stopped:
             raise SourceError("; ".join(errors))
+        if stopped and not found:
+            res.status = "skipped"
+            res.error = "; ".join(errors) or None
+            return
 
         res.logs.append(f"Fetched {len(found)} raw items from {src.display_name}")
         now = datetime.now(timezone.utc)
@@ -152,6 +184,7 @@ async def run_scrape(
     run_id: str | None = None,
     sources: list[Source] | None = None,
     schedule_id: str | None = None,
+    stop: asyncio.Event | None = None,
 ) -> Run:
     """Run a scrape to completion. The API passes `run_id` + `sources` it already picked so it can answer at once."""
     store = store or FileStore()
@@ -167,7 +200,7 @@ async def run_scrape(
     own_client = client is None
     client = client or httpx.AsyncClient(timeout=30, follow_redirects=True)
     try:
-        await asyncio.gather(*(_run_source(s, q, client, store, run, progress) for s in sources))
+        await asyncio.gather(*(_run_source(s, q, client, store, run, progress, stop) for s in sources))
     finally:
         if own_client:
             await client.aclose()
@@ -179,6 +212,7 @@ async def run_scrape(
         run.status = "partial"
     else:
         run.status = "done"
+    run.stopped = stop is not None and stop.is_set()
     run.finished_at = datetime.now(timezone.utc)
     store.save_run(run)
     return run

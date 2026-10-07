@@ -69,3 +69,11 @@ def test_scrape_sources_marks_region(tmp_path):
         assert s["in_region"] and not s["selected"]  # fake is a gig source
     finally:
         app.dependency_overrides.clear()
+
+
+def test_stop_unknown_run_is_409(tmp_path):
+    _client(tmp_path, {"fake": FakeSource({})})
+    try:
+        assert TestClient(app).post("/api/runs/nope/stop").status_code == 409
+    finally:
+        app.dependency_overrides.clear()

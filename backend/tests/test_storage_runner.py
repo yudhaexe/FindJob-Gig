@@ -159,3 +159,42 @@ def test_prune_archives_old_raw_and_runs_only(tmp_path):
     assert (tmp_path / "archive/runs/2026-01-01T10-00-00_aaaa.json").exists()
     assert (store.runs_dir / "2026-09-30T10-00-00_bbbb.json").exists()
     assert (store.jobs_dir / "alpha.jsonl").exists()
+
+
+class SlowSource(FakeSource):
+    """First keyword answers at once; the second one hangs until cancelled."""
+
+    name = "slow"
+
+    async def search(self, keyword, q, limit, http):
+        if keyword == "hang":
+            await asyncio.sleep(30)
+        return await super().search(keyword, q, limit, http)
+
+    def to_job(self, raw, fetched_at):
+        job = super().to_job(raw, fetched_at)
+        return job.model_copy(update={"id": f"slow:{raw['id']}", "source": "slow"})
+
+
+def test_stop_saves_what_was_fetched_and_skips_the_rest(tmp_path):
+    slow = SlowSource({"quick": [{"id": 1, "title": "Video Editor"}]})
+    idle = SlowSource({})  # only "hang": nothing fetched before the stop
+    idle.name = "idle"
+    store = FileStore(tmp_path)
+    q = ScrapeQuery(keywords=["quick", "hang"], sources=["slow", "idle"])
+
+    async def go():
+        stop = asyncio.Event()
+        task = asyncio.create_task(run_scrape(q, store=store, available={"slow": slow, "idle": idle}, stop=stop))
+        await asyncio.sleep(0.3)
+        stop.set()
+        return await asyncio.wait_for(task, 5)
+
+    run = asyncio.run(go())
+    assert run.stopped and run.finished_at
+    assert run.sources["slow"].status == "done" and run.sources["slow"].new == 1
+    assert any("Stopped by user" in line for line in run.sources["slow"].logs)
+    assert set(store.read_jobs("slow")) == {"slow:1"}
+    # "idle" had nothing yet for its first keyword, so it's skipped, not an error
+    assert run.sources["idle"].status in ("skipped", "done")
+    assert run.status == "done"

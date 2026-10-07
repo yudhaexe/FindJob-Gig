@@ -175,6 +175,7 @@ export interface Run {
   status: RunStatus;
   started_at: string | null;
   finished_at: string | null;
+  stopped?: boolean;
   sources: Record<string, SourceRunResult>;
 }
 

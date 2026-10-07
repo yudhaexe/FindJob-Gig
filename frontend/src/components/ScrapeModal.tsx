@@ -27,12 +27,13 @@ interface Props {
   run: Run | null;
   sourceLabel: (name: string) => string;
   onStart: (q: ScrapeQuery) => Promise<void>;
+  onStop: () => Promise<void>;
   onClose: () => void;
   onViewResults: () => void;
   onScheduleSaved?: () => void;
 }
 
-export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClose, onViewResults, onScheduleSaved }: Props) {
+export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onStop, onClose, onViewResults, onScheduleSaved }: Props) {
   const [q, setQ] = useState<ScrapeQuery>(() => ({ ...QUERY_DEFAULTS, ...initial }));
   const [draft, setDraft] = useState("");
   // The date picker is the input; the backend still receives a rolling window in hours.
@@ -49,6 +50,8 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
   const dialog = useRef<HTMLFormElement>(null);
   const keepPicked = useRef(!!initial.sources?.length);
   const running = isActive(run);
+  const [confirmStop, setConfirmStop] = useState(false);
+  const [stopping, setStopping] = useState(false);
 
   const set = (patch: Partial<ScrapeQuery>) => setQ((x) => ({ ...x, ...patch }));
 
@@ -388,7 +391,17 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
               View results →
             </button>
           )}
-          <button type="button" onClick={onClose} className="ml-auto h-9 rounded-ui border border-border px-4 hover:bg-surface">
+          {running && (
+            <button
+              type="button"
+              onClick={() => setConfirmStop(true)}
+              disabled={stopping}
+              className="ml-auto h-9 rounded-ui border border-danger/40 px-4 text-danger hover:bg-danger/10 disabled:opacity-50"
+            >
+              {stopping ? "Stopping…" : "■ Stop"}
+            </button>
+          )}
+          <button type="button" onClick={onClose} className={`${running ? "" : "ml-auto "}h-9 rounded-ui border border-border px-4 hover:bg-surface`}>
             {running ? "Run in background" : run ? "Close" : "Cancel"}
           </button>
           <button
@@ -401,6 +414,38 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
           </button>
         </div>
       </form>
+      {confirmStop && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" role="alertdialog" aria-label="Stop scrape?">
+          <div className="w-full max-w-sm rounded-ui border border-border bg-bg p-4 shadow-lg">
+            <h3 className="font-semibold">Are you sure you want to stop?</h3>
+            <p className="mt-1 text-muted">
+              Sources still running are cut off. Jobs already fetched are processed and saved; nothing is lost.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" autoFocus onClick={() => setConfirmStop(false)} className="h-9 rounded-ui border border-border px-4 hover:bg-surface">
+                Keep scraping
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setConfirmStop(false);
+                  setStopping(true);
+                  try {
+                    await onStop();
+                  } catch {
+                    /* already finished: the next poll shows the final state */
+                  } finally {
+                    setStopping(false);
+                  }
+                }}
+                className="h-9 rounded-ui bg-danger px-4 font-medium text-white hover:opacity-90"
+              >
+                Yes, stop and save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -412,7 +457,7 @@ function Progress({ run, sourceLabel }: { run: Run; sourceLabel: (name: string) 
   const entries = Object.entries(run.sources);
   const summary = isActive(run)
     ? `${done}/${total} sources`
-    : `${run.status === "done" ? "Finished" : run.status === "partial" ? "Finished with errors" : "Failed"} · ${newJobs} new job${newJobs === 1 ? "" : "s"}`;
+    : `${run.stopped ? "Stopped" : run.status === "done" ? "Finished" : run.status === "partial" ? "Finished with errors" : "Failed"} · ${newJobs} new job${newJobs === 1 ? "" : "s"}`;
   return (
     <section aria-live="polite" className="border-t border-border pt-3">
       <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted">PROGRESS</h3>

@@ -84,11 +84,15 @@ export function useScrapeRun(onFinish: (run: Run) => void) {
     setId(run_id);
   }, []);
 
+  const stop = useCallback(async () => {
+    if (id) await api.stopRun(id);
+  }, [id]);
+
   const dismiss = useCallback(() => {
     writeId(null);
     setId(null);
     setRun(null);
   }, []);
 
-  return { run, start, dismiss };
+  return { run, start, stop, dismiss };
 }

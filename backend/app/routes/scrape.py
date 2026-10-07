@@ -18,6 +18,7 @@ router = APIRouter(tags=["scrape"])
 
 # Strong refs: the event loop only keeps weak ones, and a collected task would stop mid-run.
 _active: dict[str, asyncio.Task] = {}
+_stops: dict[str, asyncio.Event] = {}
 
 
 def get_store() -> FileStore:
@@ -72,15 +73,31 @@ async def start_scrape(q: ScrapeQuery, store: StoreDep, available: SourcesDep) -
     store.save_run(Run(id=run_id, query=q, trigger="manual", status="queued",
                        started_at=datetime.now(timezone.utc),
                        sources={s.name: SourceRunResult() for s in sources}))
-    task = asyncio.create_task(run_scrape(q, store=store, trigger="manual", run_id=run_id, sources=sources))
+    stop = _stops[run_id] = asyncio.Event()
+    task = asyncio.create_task(run_scrape(q, store=store, trigger="manual", run_id=run_id, sources=sources, stop=stop))
     _active[run_id] = task
-    task.add_done_callback(lambda _: _active.pop(run_id, None))
+
+    def _cleanup(_: asyncio.Task) -> None:
+        _active.pop(run_id, None)
+        _stops.pop(run_id, None)
+
+    task.add_done_callback(_cleanup)
     return {"run_id": run_id}
 
 
 @router.get("/runs", response_model=list[Run])
 def list_runs(store: StoreDep, limit: int = Query(20, ge=1, le=200)) -> list[Run]:
     return store.list_runs(limit)
+
+
+@router.post("/runs/{run_id}/stop", status_code=202)
+def stop_run(run_id: str) -> dict:
+    """Stop fetching now; items already fetched are still parsed and saved, then the run finishes."""
+    stop = _stops.get(run_id)
+    if stop is None:
+        raise HTTPException(409, "This run is not running on this server (already finished?).")
+    stop.set()
+    return {"status": "stopping"}
 
 
 @router.get("/runs/{run_id}", response_model=Run)

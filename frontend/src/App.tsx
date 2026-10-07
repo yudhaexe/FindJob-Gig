@@ -50,6 +50,17 @@ export default function App() {
   }, []);
   const scrape = useScrapeRun(onRunFinish);
 
+  // Show results as each source finishes instead of waiting for the slowest one.
+  const finishedSources = scrape.run && isActive(scrape.run)
+    ? Object.values(scrape.run.sources).filter((x) => x.status === "done" || x.status === "error" || x.status === "skipped").length
+    : -1;
+  useEffect(() => {
+    if (finishedSources <= 0) return;
+    // The server index rechecks the data files at most once a second; wait a beat so we read the new jobs.
+    const t = setTimeout(() => setRetry((n) => n + 1), 1200);
+    return () => clearTimeout(t);
+  }, [finishedSources]);
+
   const onUpdateStatus = useCallback(async (jobId: string, status: "keep" | "removed" | null) => {
     try {
       await api.updateJobStatus(jobId, status);
@@ -308,6 +319,7 @@ export default function App() {
           run={scrape.run}
           sourceLabel={labels.source}
           onStart={scrape.start}
+          onStop={scrape.stop}
           onClose={closeScrape}
           onViewResults={showNewest}
           onScheduleSaved={schedules.reload}

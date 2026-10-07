@@ -66,5 +66,6 @@ export const api = {
   deleteSchedule: (id: string) => send<void>("DELETE", `/api/schedules/${encodeURIComponent(id)}`),
   runSchedule: (id: string) => post<{ status: string }>(`/api/schedules/${encodeURIComponent(id)}/run`, {}),
   taskStatus: () => get<{ status: "registered" | "not-registered" | "not-supported" }>("/api/schedules/task-status"),
+  stopRun: (id: string) => post<{ status: string }>(`/api/runs/${encodeURIComponent(id)}/stop`, {}),
   run: (id: string) => get<Run>(`/api/runs/${encodeURIComponent(id)}`),
 };

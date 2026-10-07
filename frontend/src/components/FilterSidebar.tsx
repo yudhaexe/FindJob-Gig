@@ -66,8 +66,40 @@ function formatRunLabel(run: Run): string {
     : run.id;
   const totalNew = Object.values(run.sources).reduce((acc, s) => acc + (s.new || 0), 0);
   const totalFetched = Object.values(run.sources).reduce((acc, s) => acc + (s.fetched || 0), 0);
-  const statusIcon = run.status === "failed" ? "❌ " : run.status === "partial" ? "⚠️ " : "";
-  return `${statusIcon}${timeStr} (${totalNew} new / ${totalFetched} fetched)`;
+  const statusIcon = run.status === "failed" ? "✖ " : run.status === "partial" ? "⚠ " : run.status === "done" ? "✔ " : "… ";
+  const failed = Object.values(run.sources).filter((x) => x.status === "error").length;
+  const total = Object.keys(run.sources).length;
+  const outcome = failed ? `${total - failed}/${total} ok` : run.stopped ? "stopped" : "";
+  return `${statusIcon}${timeStr} · ${totalNew} new / ${totalFetched} fetched${outcome ? ` · ${outcome}` : ""}`;
+}
+
+/** Per-source outcome of one scan: which sources worked and which failed (and why). */
+function RunResults({ run, sourceNames }: { run: Run; sourceNames: Record<string, string> }) {
+  return (
+    <ul className="space-y-1 rounded-ui border border-border bg-surface/40 p-2 text-xs">
+      {run.stopped && <li className="text-warning">■ Stopped by user — data fetched so far was saved</li>}
+      {Object.entries(run.sources).map(([name, r]) => {
+        const bad = r.status === "error";
+        const icon = bad ? "✖" : r.status === "done" ? "✔" : r.status === "skipped" ? "–" : "…";
+        return (
+          <li key={name} title={r.error ?? undefined}>
+            <span className={bad ? "text-danger" : r.status === "done" ? "text-success" : "text-muted"}>{icon}</span>{" "}
+            <span className="font-medium">{sourceNames[name] ?? name}</span>
+            <span className="text-muted">
+              {bad
+                ? ` — failed`
+                : r.status === "done"
+                  ? ` — ${r.fetched} fetched · ${r.new} new`
+                  : ` — ${r.status}`}
+            </span>
+            {r.error && (
+              <div className={`mt-0.5 line-clamp-3 break-words ${bad ? "text-danger" : "text-warning"}`}>{r.error}</div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 export function FilterSidebar({
@@ -157,20 +189,23 @@ export function FilterSidebar({
         </div>
       </Group>
 
-      <Group title="Scan History (Jam Scraping)" open={!!s.scan_run_id || runs.length > 0}>
+      <Group title="Scan History" open={!!s.scan_run_id || runs.length > 0}>
         <div className="space-y-1.5">
           <select
             value={s.scan_run_id}
             onChange={(e) => update({ scan_run_id: e.target.value })}
             className="h-8 w-full rounded-ui border border-border bg-surface px-2 text-xs"
           >
-            <option value="">All scans / runs (Semua)</option>
+            <option value="">All scans</option>
             {runs.map((r) => (
               <option key={r.id} value={r.id}>
                 {formatRunLabel(r)}
               </option>
             ))}
           </select>
+          {runs.find((r) => r.id === s.scan_run_id) && (
+            <RunResults run={runs.find((r) => r.id === s.scan_run_id)!} sourceNames={sourceNames} />
+          )}
           {s.scan_run_id && (
             <div className="flex items-center justify-between text-xs text-muted">
               <span>Filtering by scan run</span>
