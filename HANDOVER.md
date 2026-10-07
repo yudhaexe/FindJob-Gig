@@ -142,3 +142,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Verifikasi UI jadwal nyata (Save as schedule, Run now, Pause/Resume) OK. **M7 tutup.** | Pilih dari daftar Ditunda |
 | 2026-10-07 | Fix JobSpy gagal total di region non-negara (country_indeed None) dan posted_at naive; 73 tes lulus, live scrape OK | - |
 | 2026-10-07 | Scrape modal: input jam diganti date picker "Posted since" (dikonversi ke `since_hours` dari 00:00 lokal; jadwal tetap jendela bergulir dan ada catatannya). Belum dicek di browser. | - |
+| 2026-10-07 | Default modal Scrape condong Indonesia: region ID (tidak lagi ikut region tampilan), keyword fotografer/videografer/editor video, since 7 hari (`QUERY_DEFAULTS` di ScrapeModal.tsx). Belum dicek di browser. | - |

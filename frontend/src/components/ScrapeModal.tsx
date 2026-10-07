@@ -11,8 +11,9 @@ import { RegionSelect } from "./RegionSelect";
 const TYPES: EmploymentType[] = ["fulltime", "parttime", "contract", "freelance", "internship"];
 
 export const QUERY_DEFAULTS: ScrapeQuery = {
-  keywords: [], types: [], category: "any", sources: [], region: "ALL", location: null,
-  remote_only: false, since_hours: 72, max_per_source: 100,
+  // Leans Indonesian: region ID auto-ticks JobStreet / Kalibrr / Telegram / JobSpy; 7 days suits local boards.
+  keywords: ["fotografer", "videografer", "editor video"], types: [], category: "any", sources: [], region: "ID",
+  location: null, remote_only: false, since_hours: 168, max_per_source: 100,
 };
 
 const localISO = (d: Date) =>

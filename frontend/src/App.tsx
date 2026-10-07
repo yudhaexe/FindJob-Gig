@@ -93,8 +93,8 @@ export default function App() {
   const openJob = useCallback((id: string) => update({ job: id }, { push: !s.job }), [s.job, update]);
   const closeJob = useCallback(() => update({ job: "" }), [update]);
   const openScrape = useCallback(
-    (init: Partial<ScrapeQuery> = {}) => setScrapeInit({ region: s.region, ...init }),
-    [s.region],
+    (init: Partial<ScrapeQuery> = {}) => setScrapeInit({ ...init }),
+    [],
   );
 
   // Keep the cursor when the same list reloads (e.g. after Keep/Remove); reset for a new page or query.
