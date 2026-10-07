@@ -144,3 +144,33 @@ def test_telegram():
     assert "video" in post.topics
 
 
+
+
+def test_jobspy_never_passes_country_none(monkeypatch):
+    """python-jobspy 1.2.0 raises on country_indeed=None; non-country regions must still get a value."""
+    import sys
+    import types
+
+    from core.models import ScrapeQuery
+    from scraper.sources.jobspy import JobSpy
+
+    seen = {}
+
+    def fake_scrape_jobs(**kw):
+        seen.update(kw)
+        import pandas as pd
+        return pd.DataFrame()
+
+    monkeypatch.setitem(sys.modules, "jobspy", types.SimpleNamespace(scrape_jobs=fake_scrape_jobs))
+    JobSpy()._scrape_sync("video editor", ScrapeQuery(region="ALL"), 5)
+    assert seen["country_indeed"]
+
+
+def test_jobspy_bare_date_is_utc_aware():
+    from datetime import datetime, timezone
+
+    from scraper.sources.jobspy import JobSpy
+
+    job = JobSpy().to_job({"site": "indeed", "id": "1", "job_url": "https://x/1", "title": "T", "date_posted": "2026-10-06"},
+                          datetime.now(timezone.utc))
+    assert job.posted_at.tzinfo is not None

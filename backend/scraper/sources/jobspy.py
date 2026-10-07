@@ -55,6 +55,11 @@ class JobSpy(Source):
             if not location:
                 location = "USA"
 
+        # python-jobspy 1.2.0 crashes on country_indeed=None ('NoneType' has no attribute 'strip'),
+        # which hit every non-country region (All, SEA, ...). Use its own default instead.
+        if not country_indeed:
+            country_indeed = "USA"
+
         # Map scrape types
         job_type = None
         if q.types:
@@ -126,6 +131,8 @@ class JobSpy(Source):
         if raw.get("date_posted"):
             try:
                 posted_at = datetime.fromisoformat(str(raw["date_posted"]).replace("Z", "+00:00"))
+                if posted_at.tzinfo is None:  # JobSpy gives bare dates ("2026-10-06")
+                    posted_at = posted_at.replace(tzinfo=timezone.utc)
             except ValueError:
                 pass
 

@@ -93,7 +93,7 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 - **Google Jobs via JobSpy 1.2.0 rusak** (`Google returned no job data`). Projects.co.id 403. Glints GraphQL 403, tapi **halaman explore via `cloudscraper` jalan tanpa login**.
 - Kalibrr pernah gagal DNS sekali (sementara), jadi tambahkan retry.
 - Regex kreatif harus pakai word boundary + exclude (`photovoltaic`, `video game`, `data annotator`).
-- **JobSpy:** LinkedIn cepat kena 429. Batasi `results_wanted` dan beri jeda antar query.
+- **JobSpy 1.2.0:** `country_indeed=None` crash (`'NoneType' has no attribute 'strip'`) → konektor selalu mengirim negara (fallback `USA`) untuk region non-negara; `date_posted` berupa tanggal polos → dijadikan UTC-aware. ZipRecruiter sering 403 (hanya warning). **JobSpy:** LinkedIn cepat kena 429. Batasi `results_wanted` dan beri jeda antar query.
 - Endpoint JobStreet/Glints/Kalibrr & Freelancer.com **belum diverifikasi**. Cek dulu via DevTools.
 - Tulis file dengan atomic replace + lock per sumber (CLI dan API bisa jalan bersamaan).
 - Nama folder mengandung `&`, jadi path harus selalu di-quote: `"D:\Github\FindJob&Gig"`.
@@ -140,3 +140,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **M7 butir 6**: shortcut s/x/n/p/? + overlay bantuan. Kode M7 lengkap; typecheck + build ok | Cek visual browser semua fitur M7, lalu M7 dianggap tutup |
 | 2026-10-07 | Verifikasi browser fitur M7 via DOM; fix kursor daftar yang reset setelah Keep/Remove (shortcut `s` tidak bisa toggle). | Uji jadwal nyata di UI (opsional), M7 tutup |
 | 2026-10-07 | Verifikasi UI jadwal nyata (Save as schedule, Run now, Pause/Resume) OK. **M7 tutup.** | Pilih dari daftar Ditunda |
+| 2026-10-07 | Fix JobSpy gagal total di region non-negara (country_indeed None) dan posted_at naive; 73 tes lulus, live scrape OK | - |
