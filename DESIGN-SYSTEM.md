@@ -286,6 +286,7 @@ Semua rule di `config/rules.yaml`, dievaluasi berurutan, **match pertama menang*
 | GET | `/api/sources` | Daftar sumber, enabled, status terakhir, atribusi |
 | POST | `/api/scrape` | Body `ScrapeQuery` → `{run_id}` (jalan di background) |
 | GET | `/api/runs` · `/api/runs/{id}` | Riwayat & progress scrape (UI polling tiap 1 detik) |
+| GET | `/api/scrape/sources?region=&category=` | Semua sumber + `in_region` + `selected` (auto) + presets, untuk Scrape modal |
 | GET | `/api/export?format=csv|json&<filter yang sama>` | Export hasil filter |
 
 `sort`: `relevance` (default bila ada q) · `newest` · `salary_desc` (hanya bila `currency` diisi) · `company`.

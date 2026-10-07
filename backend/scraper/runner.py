@@ -140,11 +140,15 @@ async def run_scrape(
     progress: ProgressFn | None = None,
     available: dict[str, Source] | None = None,
     client: httpx.AsyncClient | None = None,
+    run_id: str | None = None,
+    sources: list[Source] | None = None,
 ) -> Run:
+    """Run a scrape to completion. The API passes `run_id` + `sources` it already picked so it can answer at once."""
     store = store or FileStore()
-    sources = pick_sources(q, available if available is not None else load_sources())
+    if sources is None:
+        sources = pick_sources(q, available if available is not None else load_sources())
     run = Run(
-        id=new_run_id(), query=q, trigger=trigger, status="running",
+        id=run_id or new_run_id(), query=q, trigger=trigger, status="running",
         started_at=datetime.now(timezone.utc),
         sources={s.name: SourceRunResult() for s in sources},
     )

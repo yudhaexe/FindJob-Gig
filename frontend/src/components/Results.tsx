@@ -64,12 +64,22 @@ function SourceCell({ job, labels }: { job: JobSummary; labels: Labels }) {
   );
 }
 
-function Title({ job }: { job: JobSummary }) {
+function jobHref(id: string): string {
+  const p = new URLSearchParams(location.search);
+  p.set("job", id);
+  return `?${p}`;
+}
+
+/** Opens the drawer; a real link so middle-click / copy-link still work. */
+function Title({ job, onOpen }: { job: JobSummary; onOpen: (id: string) => void }) {
   return (
     <a
-      href={job.source_url}
-      target="_blank"
-      rel="noreferrer noopener"
+      href={jobHref(job.id)}
+      onClick={(e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        onOpen(job.id);
+      }}
       className="font-semibold hover:text-accent hover:underline"
       title={job.title}
     >
@@ -77,6 +87,17 @@ function Title({ job }: { job: JobSummary }) {
     </a>
   );
 }
+
+export interface RowProps {
+  items: JobSummary[];
+  labels: Labels;
+  openId: string;
+  cursor: number;
+  onOpen: (id: string) => void;
+}
+
+const rowState = (j: JobSummary, i: number, openId: string, cursor: number) =>
+  j.id === openId ? "bg-accent/10" : i === cursor ? "bg-surface outline outline-1 -outline-offset-1 outline-accent/40" : "";
 
 function Skills({ job }: { job: JobSummary }) {
   if (!job.skills.length) return null;
@@ -88,7 +109,7 @@ function Skills({ job }: { job: JobSummary }) {
   );
 }
 
-export function ResultsTable({ items, labels }: { items: JobSummary[]; labels: Labels }) {
+export function ResultsTable({ items, labels, openId, cursor, onOpen }: RowProps) {
   return (
     <table className="w-full table-fixed border-collapse text-sm">
       <colgroup>
@@ -110,12 +131,18 @@ export function ResultsTable({ items, labels }: { items: JobSummary[]; labels: L
         </tr>
       </thead>
       <tbody>
-        {items.map((j) => (
-          <tr key={j.id} className="h-[var(--row-h)] border-b border-border align-top hover:bg-surface">
+        {items.map((j, i) => (
+          <tr
+            key={j.id}
+            data-job-row={i}
+            aria-selected={j.id === openId}
+            onClick={(e) => !(e.target as Element).closest("a, button") && onOpen(j.id)}
+            className={`h-[var(--row-h)] cursor-pointer border-b border-border align-top hover:bg-surface ${rowState(j, i, openId, cursor)}`}
+          >
             <td className="px-3 py-2">
               <div className="flex flex-col">
                 <span className="truncate">
-                  <Title job={j} />
+                  <Title job={j} onOpen={onOpen} />
                 </span>
                 <Skills job={j} />
               </div>
@@ -151,13 +178,18 @@ export function ResultsTable({ items, labels }: { items: JobSummary[]; labels: L
   );
 }
 
-export function ResultsCards({ items, labels }: { items: JobSummary[]; labels: Labels }) {
+export function ResultsCards({ items, labels, openId, cursor, onOpen }: RowProps) {
   return (
     <ul className="divide-y divide-border">
-      {items.map((j) => (
-        <li key={j.id} className="space-y-1 px-4 py-3">
+      {items.map((j, i) => (
+        <li
+          key={j.id}
+          data-job-row={i}
+          onClick={(e) => !(e.target as Element).closest("a, button") && onOpen(j.id)}
+          className={`cursor-pointer space-y-1 px-4 py-3 ${rowState(j, i, openId, cursor)}`}
+        >
           <div className="leading-snug">
-            <Title job={j} />
+            <Title job={j} onOpen={onOpen} />
           </div>
           {j.company && <div className="text-muted">{j.company}</div>}
           {money(j.salary, j.budget) && (

@@ -117,3 +117,79 @@ export interface Health {
   version: string;
   data_dir: string;
 }
+
+/** Full job from GET /api/jobs/{id}. */
+export interface Job extends Omit<JobSummary, "duplicate_count"> {
+  fingerprint: string | null;
+  source_name: string;
+  provider: string | null;
+  apply_url: string | null;
+  duplicates: string[];
+  company_url: string | null;
+  tags: string[];
+  description_text: string | null;
+  description_html: string | null;
+  expires_at: string | null;
+  fetched_at: string;
+  updated_at: string | null;
+  matched_queries: string[];
+  raw_ref: { file: string; line: number } | null;
+  raw: Record<string, unknown> | null;
+}
+
+export type ScrapeCategory = "job" | "gig" | "any";
+
+export interface ScrapeQuery {
+  keywords: string[];
+  types: EmploymentType[];
+  category: ScrapeCategory;
+  sources: string[];
+  region: string;
+  location: string | null;
+  remote_only: boolean;
+  since_hours: number;
+  max_per_source: number;
+}
+
+export type RunStatus = "queued" | "running" | "done" | "failed" | "partial";
+
+export interface SourceRunResult {
+  status: "queued" | "running" | "done" | "error" | "skipped";
+  fetched: number;
+  new: number;
+  updated: number;
+  skipped: number;
+  ms: number | null;
+  error: string | null;
+}
+
+export interface Run {
+  id: string;
+  query: ScrapeQuery;
+  trigger: "manual" | "schedule" | "cli";
+  status: RunStatus;
+  started_at: string | null;
+  finished_at: string | null;
+  sources: Record<string, SourceRunResult>;
+}
+
+export interface ScrapeSource {
+  name: string;
+  display_name: string;
+  category: "job" | "gig" | "mixed";
+  markets: string[];
+  enabled: boolean;
+  in_region: boolean;
+  selected: boolean;
+}
+
+export interface ScrapePreset {
+  name: string;
+  label: string;
+  query: Partial<ScrapeQuery>;
+}
+
+export interface ScrapeSourcesResponse {
+  sources: ScrapeSource[];
+  presets: ScrapePreset[];
+}

@@ -13,6 +13,7 @@ never sees a half-written file.
 from __future__ import annotations
 
 import os
+import re
 import time
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
@@ -27,6 +28,7 @@ from core.models import Job, RawRef, Run
 
 # Fields ignored when deciding whether a posting changed. `raw` is excluded because sources
 # embed per-request noise in it (bid counts, tracking tokens); it is still stored.
+_SAFE_NAME = re.compile(r"[A-Za-z0-9_-][A-Za-z0-9_.-]*")
 _VOLATILE = {"fetched_at", "first_seen_at", "updated_at", "raw_ref", "matched_queries", "duplicates", "raw"}
 
 
@@ -167,6 +169,8 @@ class FileStore:
 
     def get_job(self, job_id: str) -> Job | None:
         source = job_id.split(":", 1)[0]
+        if not _SAFE_NAME.fullmatch(source):  # ids come from URLs; never let them pick a path
+            return None
         for d in self.iter_job_dicts(source):
             if d.get("id") == job_id:
                 return Job.model_validate(d)
@@ -206,6 +210,8 @@ class FileStore:
         _atomic_write(path, [orjson.dumps(run.model_dump(mode="json"), option=orjson.OPT_INDENT_2)])
 
     def load_run(self, run_id: str) -> Run | None:
+        if not _SAFE_NAME.fullmatch(run_id):
+            return None
         path = self.runs_dir / f"{run_id}.json"
         if not path.exists():
             return None

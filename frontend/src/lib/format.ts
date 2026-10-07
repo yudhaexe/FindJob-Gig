@@ -107,3 +107,17 @@ export function locationLabel(j: JobSummary, regionLabel: (code: string) => stri
   if (j.work_mode === "hybrid") return `🏢 Hybrid${place ? `·${place}` : ""}`;
   return place ? `📍 ${place}` : "—";
 }
+
+const PERIOD_LONG: Record<string, string> = {
+  hour: " / hour", day: " / day", week: " / week", month: " / month", year: " / year", fixed: " fixed", unknown: "",
+};
+
+/** Full amounts for the drawer: "USD 60,000–80,000 / year". */
+export function moneyFull(m: Salary | Budget | null, period: string): string | null {
+  if (!m || (m.min == null && m.max == null)) return null;
+  const f = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+  const lo = m.min ?? m.max!;
+  const hi = m.max ?? m.min!;
+  const range = lo === hi ? f.format(lo) : `${f.format(lo)}–${f.format(hi)}`;
+  return `${m.currency ?? "?"} ${range}${PERIOD_LONG[period] ?? ""}`;
+}

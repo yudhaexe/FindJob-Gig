@@ -20,12 +20,13 @@ export interface SearchState {
   hide_unclear: boolean;
   sort: Sort | "";
   page: number;
+  job: string; // id of the job open in the drawer, "" = closed
 }
 
 export const DEFAULTS: SearchState = {
   q: "", region: "ALL", category: "", type: [], mode: [], source: [], country: [], seniority: [],
   currency: "", salary_min: "", salary_period: "month", has_salary: false, posted_within: "",
-  include_worldwide: true, hide_unclear: false, sort: "", page: 1,
+  include_worldwide: true, hide_unclear: false, sort: "", page: 1, job: "",
 };
 
 const LIST_KEYS = ["type", "mode", "source", "country", "seniority"] as const;
@@ -55,6 +56,7 @@ function fromUrl(search: string): SearchState {
   s.hide_unclear = p.get("hide_unclear") === "1";
   s.sort = (p.get("sort") as Sort | null) ?? "";
   s.page = Math.max(1, Number(p.get("page")) || 1);
+  s.job = p.get("job") ?? "";
   return s;
 }
 
@@ -74,6 +76,7 @@ function toUrl(s: SearchState): string {
   if (s.hide_unclear) p.set("hide_unclear", "1");
   set("sort", s.sort);
   if (s.page > 1) p.set("page", String(s.page));
+  set("job", s.job);
   const qs = p.toString();
   return qs ? `?${qs}` : location.pathname;
 }
@@ -110,7 +113,7 @@ export function activeFilterCount(s: SearchState): number {
   );
 }
 
-/** State + updater. Any change other than `page` resets to page 1. */
+/** State + updater. Any change other than `page` / `job` resets to page 1. */
 export function useUrlState() {
   const [state, setState] = useState<SearchState>(() => fromUrl(location.search));
 
@@ -125,7 +128,7 @@ export function useUrlState() {
 
   const update = useCallback((patch: Partial<SearchState>, opts: { push?: boolean } = {}) => {
     const next = { ...current.current, ...patch };
-    if (!("page" in patch)) next.page = 1;
+    if (!("page" in patch) && Object.keys(patch).some((k) => k !== "job")) next.page = 1;
     history[opts.push ? "pushState" : "replaceState"](null, "", toUrl(next));
     if (patch.region) {
       try {
