@@ -65,7 +65,9 @@ export interface JobSummary {
   budget: Budget | null;
   duration: Duration | null;
   skills: string[];
+  topics: string[];
   posted_at: string | null;
+  first_seen_at: string | null;
   duplicate_count: number;
 }
 
@@ -74,7 +76,40 @@ export interface JobsPage {
   total: number;
   page: number;
   page_size: number;
+  sort: Sort;
   facets: Record<string, Record<string, number>>;
+}
+
+export type Sort = "relevance" | "newest" | "salary_desc" | "company";
+
+export interface RegionInfo {
+  code: string;
+  label: string;
+  children: string[];
+  countries: string[];
+  count: number;
+}
+
+export interface RegionsResponse {
+  regions: RegionInfo[];
+  countries: Record<string, { name: string; count: number }>;
+}
+
+export interface SourceInfo {
+  name: string;
+  display_name: string;
+  category: string | null;
+  markets: string[];
+  enabled: boolean;
+  attribution: string | null;
+  jobs: number;
+  last_fetched: string | null;
+}
+
+export interface SourcesResponse {
+  sources: SourceInfo[];
+  total: number;
+  last_fetched: string | null;
 }
 
 export interface Health {

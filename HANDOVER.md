@@ -13,13 +13,15 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 
 ## Status Saat Ini
 
-- **Fase:** **M1 selesai** (2026-10-07). Berikutnya **M2**.
-- **Kode M1:** `storage/filestore.py` (JSONL, atomic replace, lock file per sumber, runs), `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`. 46 test lulus (fixture asli di `backend/tests/fixtures/`).
-- **Terverifikasi nyata:** `fjg scrape --preset creative --max 30 --since 168` → jobstreet 67, freelancer 126, himalayas 28 job tersimpan (~25 dtk). Scrape ulang → `new=0 updated=0` (idempoten).
-- **Git:** branch `main`, commit M1 = `fcc8e62` (lihat `git log`).
-- **Mode provider:** fallback (D15). Saat ini tiap sumber baru punya 1 provider; kolom `provider` sudah ada di `Job`.
-- **Next step (M2):** `storage/index.py` (load JSONL → index in-memory, reload by mtime, `dedup.group_duplicates`), `/api/jobs` filter/sort/paging/facets + `/api/regions`, UI tabel + search + filter sidebar + region selector.
-- **Belum dikerjakan dari desain:** `fjg reindex` (re-normalize dari raw), `state/sources.json` (fail_count/auto-disable), detail call JobStreet (deskripsi penuh; sekarang hanya teaser).
+- **Fase:** **M2 selesai** (2026-10-07). Berikutnya **M3** (drawer detail + scrape dari UI).
+- **Kode M1:** `storage/filestore.py`, `scraper/{base,runner,normalize,classify,money,regions,dedup,text}.py`, connector **Freelancer.com, JobStreet ID, Himalayas**, CLI `fjg scrape` / `fjg sources`. Config: `config/{sources,rules,skills,topics,regions,currencies}.yaml`.
+- **Kode M2:** `storage/index.py` (`JobIndex`: load JSONL → doc ringan, reload otomatis by mtime/size tiap ≤1 dtk, `group_duplicates`, search AND/`-exclude`/`"frasa"`/`prefix*`, plural sederhana, alias skill dari `skills.yaml`, skor title×3 skills×2 company×2 desc×1 + bonus kebaruan; filter region/type/mode/source/country/seniority/currency/salary_min/has_salary/posted_within/duration_max; facet disjunktif; sort relevance/newest/salary_desc/company). API: `/api/jobs`, `/api/jobs/{id}`, `/api/facets`, `/api/regions` (tree + count), `/api/sources` (+ jumlah job, last_fetched). Frontend: `hooks/useUrlState.ts` (semua state di URL, region juga di localStorage), `hooks/useApi.ts`, `lib/format.ts`, `components/{RegionSelect,FilterSidebar,Results}.tsx`, `App.tsx` (header, sidebar, chips, sort, tabel ≥768px, kartu mobile, bottom sheet filter <1024px, pagination, state kosong/error, `/` fokus search).
+- **Tes:** 53 lulus (`tests/test_index_api.py` baru). `npm run build` ok.
+- **Terverifikasi nyata:** scrape preset creative → 226 job. Di browser: search "video editor" → 42 hasil, facet benar, region Indonesia → 23 (onsite ID + remote worldwide), filter IDR ≥ 10M via API ok. Tampilan mobile belum dicek visual (tool screenshot gagal saat resize).
+- **Git:** branch `main` (lihat `git log`).
+- **Mode provider:** fallback (D15).
+- **Next step (M3):** Job drawer (Overview / Description dengan DOMPurify + highlight / Raw JSON) memakai `GET /api/jobs/{id}` (sudah ada, termasuk `duplicates`), `?job=<id>` di URL, `j/k` + `Enter`; Scrape modal + `POST /api/scrape` + `/api/runs` polling. Saat ini klik judul membuka halaman sumber di tab baru.
+- **Ditunda:** TanStack Table/Virtual (tabel native + paging 50 cukup sekarang; pakai saat kolom bisa diatur di M7), pin region (★), `fjg reindex`, `state/sources.json`, detail call JobStreet.
 
 ## Cara Menjalankan
 
@@ -59,6 +61,7 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 | D16 | Kode region tidak boleh sama dengan kode negara ISO → South Asia = `SAS` (bukan `SA` = Saudi Arabia) | Region bisa berupa negara (`?region=SG`) |
 | D17 | `duplicates` dihitung saat baca (index), tidak ditulis ke file; job tanpa company tidak di-dedup lintas sumber | Selalu konsisten; judul gig saja terlalu sering bentrok |
 | D18 | Salary tebakan dari **deskripsi** hanya diterima bila ada periode (/hr, per month, …); dari **judul** selalu diterima | Deskripsi penuh angka pendanaan/harga ("US$218M") |
+| D19 | Pencarian: kata di-AND, `-x` exclude, `"frasa"`, `x*` prefix; plural sederhana (editor↔editors), tanpa stemming lain | Prediktabel; `react` tidak ikut cocok `reactive` |
 
 ## Gotchas
 
@@ -78,6 +81,8 @@ Script root tidak punya dependensi, cukup Node murni di `scripts/*.mjs`.
 - **Himalayas** search: 20 job/halaman lewat `page`, filter `country=<nama negara>`. Banyak job lama, jadi `--since` kecil membuang sebagian besar hasil.
 - **Freelancer.com** search fuzzy (keyword "retoucher" bisa mengembalikan "Retype Pages"); `topics` membantu memilah. Perlu `location_details=true` agar gig onsite punya lokasi.
 - Output CLI berisi ✓/✗; saat di-pipe di Windows tampil `?` (stdout di-set `errors="replace"`), bukan error.
+- **YAML 1.1:** kode negara `NO` (Norwegia) terbaca `false` kalau tidak dikutip. Kutip kode seperti `"NO"`, `"ON"`, `"YES"` di config.
+- Vite dev server listen di `localhost` (IPv6), jadi `curl 127.0.0.1:5173` gagal; pakai `localhost:5173`.
 - Starlette mengeluarkan DeprecationWarning "install httpx2" di TestClient. Ini aman diabaikan.
 
 ## Pertanyaan Terbuka
@@ -96,3 +101,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | Validasi nyata 18 sumber + 8 kasus JobSpy untuk freelance foto/video → VALIDATION.md; prioritas sumber & M1 diubah | M1 |
 | 2026-10-07 | Cari repo lagi (GitHub Search API): Glints bisa via cloudscraper; spinlud LinkedIn butuh login (opsional). Desain multi-provider (fallback/parallel) di DESIGN-SYSTEM §12. LinkedIn naik ke P1. User setuju fallback (D15). Commit `8d64998` | M1 |
 | 2026-10-07 | **M1 selesai**: FileStore, runner, classify (rules/skills/topics yaml), money, regions, dedup, 3 connector (Freelancer, JobStreet, Himalayas), `fjg scrape`/`sources`. 46 test. Scrape nyata preset creative OK & idempoten. Commit `fcc8e62` | M2 |
+| 2026-10-07 | **M2 selesai**: JobIndex + API jobs/facets/regions/sources, UI tabel + search + filter sidebar + region selector + chips + paging, state di URL. Fix `NO` di regions.yaml. 53 test | M3 |

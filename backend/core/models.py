@@ -130,6 +130,7 @@ class JobSummary(BaseModel):
     skills: list[str] = Field(default_factory=list)
     topics: list[str] = Field(default_factory=list)
     posted_at: datetime | None = None
+    first_seen_at: datetime | None = None
     duplicate_count: int = 0
 
     @classmethod
@@ -176,4 +177,5 @@ class JobsPage(BaseModel):
     total: int
     page: int
     page_size: int
+    sort: str = "newest"
     facets: dict[str, dict[str, int]] = Field(default_factory=dict)

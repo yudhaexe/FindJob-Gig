@@ -132,7 +132,7 @@ Detail di [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 |---|---|---|
 | **M0 Setup** | `git init`, `.gitignore`, scaffold `backend/` + `frontend/`, skema pydantic `Job` | `uvicorn` + `vite` jalan, halaman kosong tampil |
 | **M1 Core data** ✅ | FileStore, normalize, classify (+ kamus Creative), dedup, 3 sumber (**Freelancer.com, JobStreet ID, Himalayas**), CLI `fjg scrape` | File `data/jobs/*.jsonl` terisi dan valid |
-| **M2 API + UI dasar** | `/api/jobs` (filter, sort, paging), tabel hasil, search bar, filter sidebar, **region selector + parsing lokasi/remote scope** | Bisa cari keyword, filter type & region di browser |
+| **M2 API + UI dasar** ✅ | `/api/jobs` (filter, sort, paging), tabel hasil, search bar, filter sidebar, **region selector + parsing lokasi/remote scope** | Bisa cari keyword, filter type & region di browser |
 | **M3 Detail + Scrape dari UI** | Drawer detail (Overview/Description/Raw JSON), Scrape modal (region-aware) + progress run | Klik baris → detail lengkap; scrape dari UI berhasil |
 | **M4 Freelance/Gig** | Reddit, Freelancer.com, HN freelancer, parsing budget & durasi | Filter "Gigs" berisi data nyata |
 | **M5 Job board besar + ID** | JobSpy, JobStreet/Glints/Kalibrr, Telegram | Lowongan Indonesia & LinkedIn/Indeed muncul |

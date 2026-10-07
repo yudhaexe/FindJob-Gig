@@ -13,7 +13,7 @@ regions:
   OC: { label: "Oceania", countries: [AU, NZ], aliases: [oceania, anz] }
   EU:
     label: "Europe"
-    countries: [GB, IE, DE, NL, BE, LU, FR, ES, PT, IT, CH, AT, PL, CZ, SK, HU, RO, BG, GR, HR, SI, RS, UA, SE, NO, DK, FI, IS, EE, LV, LT, CY, MT]
+    countries: [GB, IE, DE, NL, BE, LU, FR, ES, PT, IT, CH, AT, PL, CZ, SK, HU, RO, BG, GR, HR, SI, RS, UA, SE, "NO", DK, FI, IS, EE, LV, LT, CY, MT]
     aliases: [europe, eu, emea, european union, cet, cest, eet, wet]
   NA: { label: "North America", countries: [US, CA], aliases: [north america, americas] }
   LATAM: { label: "Latin America", countries: [MX, BR, AR, CO, CL, PE, UY, EC, BO, PY, VE, CR, PA, GT, DO], aliases: [latam, latin america, south america] }
@@ -69,7 +69,7 @@ countries:
   RS: { name: Serbia, aliases: [serbia, belgrade] }
   UA: { name: Ukraine, aliases: [ukraine, kyiv, kiev] }
   SE: { name: Sweden, aliases: [sweden, stockholm] }
-  NO: { name: Norway, aliases: [norway, oslo] }
+  "NO": { name: Norway, aliases: [norway, oslo] }
   DK: { name: Denmark, aliases: [denmark, copenhagen] }
   FI: { name: Finland, aliases: [finland, helsinki] }
   IS: { name: Iceland, aliases: [iceland] }

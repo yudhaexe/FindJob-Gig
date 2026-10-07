@@ -14,8 +14,15 @@ def test_health():
     assert r.json()["status"] == "ok"
 
 
-def test_jobs_empty_page():
-    r = client.get("/api/jobs", params={"q": "react", "region": "SEA"})
+def test_jobs_empty_page(tmp_path):
+    from storage.filestore import FileStore
+    from storage.index import JobIndex, default_index
+
+    app.dependency_overrides[default_index] = lambda: JobIndex(FileStore(tmp_path))
+    try:
+        r = client.get("/api/jobs", params={"q": "react", "region": "SEA"})
+    finally:
+        app.dependency_overrides.clear()
     assert r.status_code == 200
     assert r.json()["total"] == 0
 
