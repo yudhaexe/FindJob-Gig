@@ -1,4 +1,5 @@
 // Results area (DESIGN-UIUX.md §2.1, §2.4, §3): toolbar with chips + sort, table (≥768px), cards (mobile).
+import type { ReactNode } from "react";
 import type { SearchState } from "../hooks/useUrlState";
 import {
   CATEGORY_LABEL, MODE_LABEL, SENIORITY_LABEL, TYPE_LABEL, duration, fullDate, locationLabel, money, relTime, typeKey,
@@ -110,27 +111,82 @@ function Skills({ job }: { job: JobSummary }) {
   );
 }
 
-export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateStatus }: RowProps) {
+export interface ColumnDef {
+  id: string;
+  label: string;
+  weight: number; // relative width
+  required?: boolean; // always shown, cannot be hidden
+  render: (j: JobSummary, labels: Labels, onOpen: (id: string) => void) => ReactNode;
+  cellClass?: string;
+}
+
+export const COLUMNS: ColumnDef[] = [
+  {
+    id: "title", label: "Title", weight: 32, required: true,
+    render: (j, _l, onOpen) => (
+      <div className="flex flex-col">
+        <span className="truncate"><Title job={j} onOpen={onOpen} /></span>
+        <Skills job={j} />
+      </div>
+    ),
+  },
+  {
+    id: "company", label: "Company", weight: 16, cellClass: "truncate",
+    render: (j) => j.company ?? <span className="text-muted">{j.category === "gig" ? "(individual)" : "—"}</span>,
+  },
+  { id: "pay", label: "Salary / Budget", weight: 14, render: (j) => <Money job={j} /> },
+  { id: "type", label: "Type", weight: 9, render: (j) => <TypeBadge job={j} /> },
+  {
+    id: "duration", label: "Duration", weight: 7, cellClass: "whitespace-nowrap",
+    render: (j) => duration(j.duration) ?? <span className="text-muted">—</span>,
+  },
+  {
+    id: "where", label: "Location · Source · Posted", weight: 20,
+    render: (j, labels) => (
+      <div className="flex flex-col">
+        <span className="truncate" title={j.location.raw ?? j.remote_scope?.raw ?? undefined}>
+          {locationLabel(j, labels.region)}
+        </span>
+        <span className="flex gap-2 text-[13px]">
+          <SourceCell job={j} labels={labels} />
+          <span className="text-muted">·</span>
+          <span className="text-muted"><Posted job={j} /></span>
+        </span>
+      </div>
+    ),
+  },
+  {
+    id: "location", label: "Location", weight: 12, cellClass: "truncate",
+    render: (j, labels) => locationLabel(j, labels.region),
+  },
+  { id: "source", label: "Source", weight: 10, render: (j, labels) => <SourceCell job={j} labels={labels} /> },
+  { id: "posted", label: "Posted", weight: 8, cellClass: "whitespace-nowrap", render: (j) => <Posted job={j} /> },
+  {
+    id: "seniority", label: "Seniority", weight: 8, cellClass: "whitespace-nowrap",
+    render: (j) => (j.seniority !== "unknown" ? SENIORITY_LABEL[j.seniority] : <span className="text-muted">—</span>),
+  },
+];
+
+/** Columns the table starts with (the rest are opt-in from the Columns menu). */
+export const DEFAULT_COLUMNS = ["title", "company", "pay", "type", "duration", "where"];
+
+export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateStatus, columns = DEFAULT_COLUMNS }: RowProps & { columns?: string[] }) {
+  const cols = columns.map((id) => COLUMNS.find((c) => c.id === id)).filter((c): c is ColumnDef => !!c);
+  const total = cols.reduce((n, c) => n + c.weight, 0);
   return (
     <table className="w-full table-fixed border-collapse text-sm">
       <colgroup>
         <col className="w-[52px]" />
-        <col className="w-[32%]" />
-        <col className="w-[16%]" />
-        <col className="w-[14%]" />
-        <col className="w-[9%]" />
-        <col className="w-[7%]" />
-        <col className="w-[20%]" />
+        {cols.map((c) => (
+          <col key={c.id} style={{ width: `${(c.weight / total) * 100}%` }} />
+        ))}
       </colgroup>
       <thead className="sticky top-0 z-10 bg-bg text-left text-xs text-muted">
         <tr className="border-b border-border">
           <th className="px-1 py-2 text-center font-medium">Tag</th>
-          <th className="px-3 py-2 font-medium">Title</th>
-          <th className="px-3 py-2 font-medium">Company</th>
-          <th className="px-3 py-2 font-medium">Salary / Budget</th>
-          <th className="px-3 py-2 font-medium">Type</th>
-          <th className="px-3 py-2 font-medium">Duration</th>
-          <th className="px-3 py-2 font-medium">Location · Source · Posted</th>
+          {cols.map((c) => (
+            <th key={c.id} className="px-3 py-2 font-medium">{c.label}</th>
+          ))}
         </tr>
       </thead>
       <tbody>
@@ -166,38 +222,11 @@ export function ResultsTable({ items, labels, openId, cursor, onOpen, onUpdateSt
                 </button>
               </div>
             </td>
-            <td className="px-3 py-2">
-              <div className="flex flex-col">
-                <span className="truncate">
-                  <Title job={j} onOpen={onOpen} />
-                </span>
-                <Skills job={j} />
-              </div>
-            </td>
-            <td className="truncate px-3 py-2" title={j.company ?? undefined}>
-              {j.company ?? <span className="text-muted">{j.category === "gig" ? "(individual)" : "—"}</span>}
-            </td>
-            <td className="px-3 py-2">
-              <Money job={j} />
-            </td>
-            <td className="px-3 py-2">
-              <TypeBadge job={j} />
-            </td>
-            <td className="whitespace-nowrap px-3 py-2">{duration(j.duration) ?? <span className="text-muted">—</span>}</td>
-            <td className="px-3 py-2">
-              <div className="flex flex-col">
-                <span className="truncate" title={j.location.raw ?? j.remote_scope?.raw ?? undefined}>
-                  {locationLabel(j, labels.region)}
-                </span>
-                <span className="flex gap-2 text-[13px]">
-                  <SourceCell job={j} labels={labels} />
-                  <span className="text-muted">·</span>
-                  <span className="text-muted">
-                    <Posted job={j} />
-                  </span>
-                </span>
-              </div>
-            </td>
+            {cols.map((c) => (
+              <td key={c.id} className={`px-3 py-2 ${c.cellClass ?? ""}`}>
+                {c.render(j, labels, onOpen)}
+              </td>
+            ))}
           </tr>
         ))}
       </tbody>

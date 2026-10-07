@@ -1,4 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ColumnMenu, useColumns } from "./components/ColumnMenu";
 import { FilterSidebar } from "./components/FilterSidebar";
 import { JobDrawer } from "./components/JobDrawer";
 import { RegionSelect, regionLabel } from "./components/RegionSelect";
@@ -28,6 +29,7 @@ const PAGE_SIZE = 50;
 
 export default function App() {
   const [s, update] = useUrlState();
+  const [columns, setColumns] = useColumns();
   const [retry, setRetry] = useState(0);
   const [sheet, setSheet] = useState(false);
   const jobs = useJobs(s, PAGE_SIZE, retry);
@@ -203,6 +205,7 @@ export default function App() {
                   ))}
                 </span>
               )}
+              <ColumnMenu columns={columns} onChange={setColumns} />
               <SortSelect s={s} effective={page?.sort ?? (s.sort || "newest")} update={update} />
             </span>
           </div>
@@ -243,6 +246,7 @@ export default function App() {
                     cursor={cursor}
                     onOpen={openJob}
                     onUpdateStatus={onUpdateStatus}
+                    columns={columns}
                   />
                 </div>
                 <div className="md:hidden">
