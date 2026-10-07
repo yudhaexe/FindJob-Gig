@@ -1,0 +1,19 @@
+{
+  "name": "findjob-gig",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Job & gig aggregator — rule-based (no LLM), file storage, FastAPI + React",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "postinstall": "node scripts/setup.mjs",
+    "setup": "node scripts/setup.mjs",
+    "start": "node scripts/dev.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/run.mjs build",
+    "serve": "node scripts/run.mjs serve",
+    "test": "node scripts/run.mjs test",
+    "fjg": "node scripts/run.mjs fjg"
+  }
+}
