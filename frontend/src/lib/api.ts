@@ -37,6 +37,15 @@ async function send<T>(method: "PATCH" | "DELETE", path: string, body?: unknown)
   return res.status === 204 ? (undefined as T) : ok<T>(res);
 }
 
+/** Download URL for /api/export (same filters as the list, no paging). */
+export function exportUrl(format: "csv" | "json", params: Params): string {
+  const qs = new URLSearchParams({ format });
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== "" && k !== "page" && k !== "page_size") qs.set(k, String(v));
+  }
+  return `/api/export?${qs}`;
+}
+
 export const api = {
   health: () => get<Health>("/api/health"),
   jobs: (params: Params, signal?: AbortSignal) => get<JobsPage>("/api/jobs", params, signal),

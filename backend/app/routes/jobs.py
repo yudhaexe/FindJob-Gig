@@ -1,8 +1,13 @@
 """Jobs API (DESIGN-SYSTEM §8): list with filters/sort/paging/facets, detail, regions, sources."""
 
-from typing import Annotated, Literal
+import csv
+import io
+import json
+from datetime import datetime, timezone
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from core import config
@@ -67,6 +72,54 @@ def list_jobs(
     if sort is not None and sort not in SORTS:
         raise HTTPException(422, f"sort must be one of: {', '.join(SORTS)}")
     return index.search(f, sort=sort, page=page, page_size=page_size)
+
+
+CSV_COLUMNS = [
+    "title", "company", "category", "employment_type", "work_mode", "seniority", "location", "country",
+    "pay_min", "pay_max", "currency", "pay_period", "duration", "skills", "source", "posted_at",
+    "first_seen_at", "user_status", "url",
+]
+
+
+def _csv_row(j: dict[str, Any]) -> dict[str, Any]:
+    pay = j.get("salary") or j.get("budget") or {}
+    loc = j.get("location") or {}
+    dur = j.get("duration") or {}
+    return {
+        "title": j["title"], "company": j.get("company"), "category": j.get("category"),
+        "employment_type": j.get("employment_type"), "work_mode": j.get("work_mode"),
+        "seniority": j.get("seniority"), "location": loc.get("raw") or loc.get("city"),
+        "country": loc.get("country"), "pay_min": pay.get("min"), "pay_max": pay.get("max"),
+        "currency": pay.get("currency"), "pay_period": pay.get("period") or pay.get("type"),
+        "duration": dur.get("raw") or (f"{dur['value']:g} {dur.get('unit')}" if dur.get("value") else None),
+        "skills": "; ".join(j.get("skills") or []), "source": j.get("source_name"),
+        "posted_at": j.get("posted_at"), "first_seen_at": j.get("first_seen_at"),
+        "user_status": j.get("user_status"), "url": j.get("source_url"),
+    }
+
+
+@router.get("/export")
+def export_jobs(
+    index: IndexDep,
+    f: FiltersDep,
+    format: Literal["csv", "json"] = "csv",
+    sort: str | None = Query(None, description=" | ".join(SORTS)),
+) -> Response:
+    """Every job matching the filters (no paging), as a download."""
+    if sort is not None and sort not in SORTS:
+        raise HTTPException(422, f"sort must be one of: {', '.join(SORTS)}")
+    items = index.search(f, sort=sort, page=1, page_size=10**9)["items"]
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
+    headers = {"Content-Disposition": f'attachment; filename="findjobgig-{stamp}.{format}"'}
+    if format == "json":
+        body = json.dumps(items, ensure_ascii=False, indent=2, default=str)
+        return Response(body, media_type="application/json", headers=headers)
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=CSV_COLUMNS)
+    w.writeheader()
+    w.writerows(_csv_row(j) for j in items)
+    # BOM so Excel reads UTF-8 correctly
+    return Response("﻿" + buf.getvalue(), media_type="text/csv; charset=utf-8", headers=headers)
 
 
 @router.get("/facets")

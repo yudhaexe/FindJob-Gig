@@ -9,8 +9,8 @@ import { SchedulesPanel, useSchedules } from "./components/SchedulesPanel";
 import { ScrapeModal } from "./components/ScrapeModal";
 import { useDebounced, useJobs, useRegions, useSources } from "./hooks/useApi";
 import { isActive, runProgress, useScrapeRun } from "./hooks/useScrapeRun";
-import { DEFAULTS, activeFilterCount, useUrlState, type SearchState } from "./hooks/useUrlState";
-import { api } from "./lib/api";
+import { DEFAULTS, activeFilterCount, toApiParams, useUrlState, type SearchState } from "./hooks/useUrlState";
+import { api, exportUrl } from "./lib/api";
 import { relTime } from "./lib/format";
 import type { Run, Schedule, ScrapeQuery } from "./lib/types";
 
@@ -186,7 +186,23 @@ export default function App() {
               {page ? `${page.total.toLocaleString("en-US")} result${page.total === 1 ? "" : "s"}` : "…"}
             </span>
             <Chips chips={chips} update={update} />
-            <span className="ml-auto">
+            <span className="ml-auto flex items-center gap-2">
+              {page && page.total > 0 && (
+                <span className="flex items-center gap-1 text-muted">
+                  Export
+                  {(["csv", "json"] as const).map((fmt) => (
+                    <a
+                      key={fmt}
+                      href={exportUrl(fmt, toApiParams(s, 0))}
+                      download
+                      title={`Download all ${page.total.toLocaleString("en-US")} matching results as ${fmt.toUpperCase()}`}
+                      className="flex h-8 items-center rounded-ui border border-border px-2 uppercase hover:bg-surface"
+                    >
+                      {fmt}
+                    </a>
+                  ))}
+                </span>
+              )}
               <SortSelect s={s} effective={page?.sort ?? (s.sort || "newest")} update={update} />
             </span>
           </div>

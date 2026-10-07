@@ -30,8 +30,9 @@ Dokumen: [PLANNING.md](PLANNING.md) · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · [
 - **Git:** branch `main`.
 - **Mode provider:** fallback (D15).
 - **Next step (M7 Polish, PLANNING §6):** kerjakan berurutan, commit per bagian (tanpa co-author), update HANDOVER tiap selesai:
-  1. **Verifikasi M6 dulu** (belum pernah dicoba nyata): `npm start`, buka panel ⏱ Schedules, buat jadwal lewat "Save as schedule", klik Run now, pause/resume; jalankan `powershell -ExecutionPolicy Bypass -File scriptsegister-task.ps1` lalu `npm run fjg -- schedule status` (harus `registered`). Perbaiki bila ada bug.
-  2. **Export CSV/JSON:** `GET /api/export?format=csv|json&<filter sama dengan /api/jobs>` (DESIGN-SYSTEM §8, belum ada) + tombol di UI.
+  1. **Verifikasi M6 dulu** (belum pernah dicoba nyata): `npm start`, buka panel ⏱ Schedules, buat jadwal lewat "Save as schedule", klik Run now, pause/resume; jalankan `powershell -ExecutionPolicy Bypass -File scripts
+egister-task.ps1` lalu `npm run fjg -- schedule status` (harus `registered`). Perbaiki bila ada bug.
+  2. ~~**Export CSV/JSON**~~ selesai: `GET /api/export?format=csv|json&<filter /api/jobs>` (semua hasil, tanpa paging; CSV pakai BOM utk Excel) + tombol CSV/JSON di toolbar hasil (`exportUrl` di `lib/api.ts`).
   3. **Kolom tabel bisa diatur** (tampil/sembunyi, urutan; simpan di localStorage). Di sinilah TanStack Table baru layak dipakai.
   4. **Dark mode manual toggle:** sekarang hanya `prefers-color-scheme` di `index.css`; tambah toggle + `data-theme`.
   5. **Retensi data:** arsip/hapus raw & run lama (`data/archive/`), mis. `fjg prune --days N`.
@@ -131,3 +132,4 @@ Tidak ada (semua dijawab di rev 3).
 | 2026-10-07 | **Fitur Tambahan (Error Handling, Logs, Scan History, Keep & Remove)**: (1) Anti silent error & auto fail/partial run status, (2) Granular execution logs per source di runner + UI expandable log viewer di progress modal, (3) Scan history & time filter (`scan_run_id`) di API, Index, dan sidebar dropdown, (4) Persistent Keep (★) & Remove (✕) tagging di JSONL, endpoint status, table/card/drawer actions, dan sidebar filter. 66 test lulus, build clean. | M6 |
 | 2026-10-07 | **M6 selesai**: schedules.json + scheduler (claim, pause 3 gagal), API, CLI `fjg schedule`, `register-task.ps1`, Schedules panel + Save as schedule + badge header. 70 test lulus, build clean, CLI smoke OK. | M7; verifikasi Task Scheduler & UI di browser |
 | 2026-10-07 | **M7 butir 1 (sebagian)**: verifikasi M6 — 70 tes lulus, `register-task.ps1` jalan, task `FindJobGig` terdaftar & sukses dijalankan manual (hasil 0), `schedule status` = registered. Fix typo path di HANDOVER. | Verifikasi UI Schedules di browser, lalu M7 butir 2 (Export CSV/JSON) |
+| 2026-10-07 | **M7 butir 2**: Export CSV/JSON (`/api/export` + tombol toolbar), 70 tes lulus (tes API diperluas), build ok. | Verifikasi UI Schedules di browser, M7 butir 3 (kolom tabel) |

@@ -132,6 +132,12 @@ def test_api(index):
         assert sea["count"] == 4 and "ID" in sea["countries"]
         assert regions["countries"]["ID"] == {"name": "Indonesia", "count": 4}
         assert client.get("/api/facets", params={"region": "sea"}).json()["source"] == {"alpha": 2, "beta": 2}
+        r = client.get("/api/export", params={"q": "editor", "type": "fulltime,unknown"})
+        assert r.status_code == 200 and "attachment" in r.headers["content-disposition"]
+        rows = list(__import__("csv").DictReader(r.text.lstrip("﻿").splitlines()))
+        assert len(rows) == 2 and rows[0]["title"] and "url" in rows[0]
+        r = client.get("/api/export", params={"format": "json", "region": "sea"})
+        assert len(r.json()) == 4 and r.headers["content-disposition"].endswith('.json"')
         sources = client.get("/api/sources").json()
         assert sources["total"] == 5 and sources["last_fetched"]
     finally:
