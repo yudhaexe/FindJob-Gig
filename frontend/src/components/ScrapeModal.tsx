@@ -51,7 +51,11 @@ export function ScrapeModal({ initial, regions, run, sourceLabel, onStart, onClo
         else setPicked(new Set(r.sources.filter((s) => s.selected).map((s) => s.name)));
       })
       .catch((e: unknown) => {
-        if (!ctrl.signal.aborted) setError(e instanceof Error ? e.message : String(e));
+        if (ctrl.signal.aborted) return;
+        const msg = e instanceof Error ? e.message : String(e);
+        // A 404 here means the backend predates the scrape API (uvicorn --reload missed the new route).
+        setError(/not found/i.test(msg) ? "The backend is out of date (scrape API not found). Restart `npm start` and try again." : msg);
+        setSources([]);
       });
     return () => ctrl.abort();
   }, [q.region, q.category]);
